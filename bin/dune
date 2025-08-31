@@ -1,4 +1,5 @@
 (executable
  (public_name STP)
  (name main)
- (libraries STP))
+ (modules main tokens lexer)
+ (libraries STP re))
