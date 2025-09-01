@@ -1,4 +1,4 @@
-open Lexer
+open STP.Lexer
 
 let rec repl () =
   print_string ">>> ";

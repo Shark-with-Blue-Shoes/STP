@@ -1,2 +1,4 @@
 (library
- (name STP))
+ (name STP)
+ (modules tokens lexer)
+ )
