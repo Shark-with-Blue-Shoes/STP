@@ -13,11 +13,16 @@ let pos = ref 0;;
 let next_pos () = 
   pos := !pos+1;;
 
+let back_pos () = 
+  pos := !pos-1;;
+
 let reset_pos () = 
   pos := 0;;
 
 let rec tokenize (txt : string) (tokens : Tokens.t list) : Tokens.t list =
-  
+
+  let tokenize_next cur_tokens = next_pos (); tokenize txt cur_tokens in
+
   let at_eof () : bool = !pos >= String.length txt in
   (*This tokenizes numbers, it is initiated when the lexer finds a num*)
   let rec tokenize_num (chars : char list) =
@@ -27,17 +32,15 @@ let rec tokenize (txt : string) (tokens : Tokens.t list) : Tokens.t list =
       match char with
       | 'a' .. 'z' | 'A' .. 'Z' -> Lexing_error "Can't end number with letter, add a space or something" |> raise 
       | '0' .. '9' -> tokenize_num (char :: chars)
-      | _ -> 
+      | _ -> back_pos ();
             let final_num = List.rev chars |> string_of_chars |> int_of_string in
-            let token = Num final_num in
-            tokenize txt (token :: tokens) end
+            let token = Num final_num in token end
     else begin
       let final_num = List.rev chars |> string_of_chars |> int_of_string in
-        let token = Num final_num in
-            (EOF :: token :: tokens) |> List.rev end
+        let token = Num final_num in token end
           in
 
-  let rec tokenize_word (chars : char list) = 
+  let rec tokenize_word (chars : char list) : Tokens.t = 
     next_pos ();
     if at_eof () |> not then begin
       let char = txt.[!pos] in
@@ -46,26 +49,27 @@ let rec tokenize (txt : string) (tokens : Tokens.t list) : Tokens.t list =
       | ' ' | '\t' | '\n' | '\r' ->  
                                     let final_word = List.rev chars |> string_of_chars in
                                     let token = Var final_word in
-                                    tokenize txt (token :: tokens)
+                                    token
       | _ -> Lexing_error "What the helly is this character!" |> raise end
     else begin
       let final_word = List.rev chars |> string_of_chars in
-        let token = Var final_word in
-            (EOF :: token :: tokens) |> List.rev end
+        let token = Var final_word in token end
           in
 
   if at_eof () |> not then begin
     try
       let char = txt.[!pos] in
       match char with
-      | 'a' .. 'z' | 'A' .. 'Z' ->  tokenize_word [char]
-      | '0' .. '9' -> tokenize_num [char]
-      | '+' -> next_pos (); tokenize txt (PLUS :: tokens)
-      | '/' -> next_pos (); tokenize txt (DIV :: tokens)
-      | '*' -> next_pos (); tokenize txt (MULT :: tokens)
-      | '-' -> next_pos (); tokenize txt (SUB :: tokens)
-      | ' ' | '\t' | '\n' | '\r' -> next_pos (); tokenize txt tokens
-      | _ -> raise (Lexing_error "Not a symbol dum dum")
+      | ' ' | '\t' | '\n' | '\r' -> tokenize_next tokens
+      | _ -> let token = match char with
+                         | 'a' .. 'z' | 'A' .. 'Z' ->  tokenize_word [char]
+                         | '0' .. '9' -> tokenize_num [char]
+                         | '+' -> PLUS
+                         | '/' -> DIV
+                         | '*' -> MULT
+                         | '-' -> SUB 
+                         | _ -> Lexing_error "Does not match any known char" |> raise in
+                                  tokenize_next (token :: tokens)
     with 
     | Lexing_error err -> 
         printf "LEXING ERROR: %s\nat offset: %i\n\n\nPrinting retrieved tokens...\n" err !pos; 
