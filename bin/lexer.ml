@@ -31,17 +31,25 @@ let rec tokenize (txt : string) (pos : int) (tokens : Tokens.t list) : Tokens.t 
           in
 
   if at_eof pos txt |> not then begin
-    let char = txt.[pos] in
-      if is_digit char then
-        tokenize_num [char] (pos+1)
-      else
-      match char with
-      | '+' -> tokenize txt (pos+1) (PLUS :: tokens)
-      | '/' -> tokenize txt (pos+1) (DIV :: tokens)
-      | '*' -> tokenize txt (pos+1) (MULT :: tokens)
-      | '-' -> tokenize txt (pos+1) (SUB :: tokens)
-      | ' ' -> tokenize txt (pos+1) tokens
-      | _ -> raise (Lexing_error "screw you") end
+    try
+      let char = txt.[pos] in
+        if is_digit char then
+          tokenize_num [char] (pos+1)
+        else
+        match char with
+        | '+' -> tokenize txt (pos+1) (PLUS :: tokens)
+        | '/' -> tokenize txt (pos+1) (DIV :: tokens)
+        | '*' -> tokenize txt (pos+1) (MULT :: tokens)
+        | '-' -> tokenize txt (pos+1) (SUB :: tokens)
+        | ' ' -> tokenize txt (pos+1) tokens
+        | _ -> raise (Lexing_error "Not a symbol dum dum")
+    with 
+    | Lexing_error err -> 
+        printf "LEXING ERROR: %s\nat offset: %i\n\n\nPrinting retrieved tokens...\n" err (pos+1); 
+        tokens |> List.rev 
+    | err -> 
+        Printexc.to_string err |> printf "ANOMALY: %s\n\n\nPrinting retrieved tokens...\n\n";
+        tokens |> List.rev end
   else 
     (EOF :: tokens) |> List.rev 
 ;;
