@@ -5,4 +5,15 @@ type t =
   | DIV
   | PLUS
   | SUB
+  | EQ
+  | LPAREN
+  | RPAREN
+  | LBRACE
+  | RBRACE
+  | LBRACK
+  | RBRACK
+  | SEMICOLON
+  | COLON
+  | AND
+  | OR
   | EOF

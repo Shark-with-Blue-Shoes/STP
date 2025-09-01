@@ -21,11 +21,12 @@ let rec tokenize (txt : string) (tokens : Tokens.t list) : Tokens.t list =
   let at_eof () : bool = !pos >= String.length txt in
   (*This tokenizes numbers, it is initiated when the lexer finds a num*)
   let rec tokenize_num (chars : char list) =
+    next_pos ();
     if at_eof () |> not then begin
       let char = txt.[!pos] in
       match char with
       | 'a' .. 'z' | 'A' .. 'Z' -> Lexing_error "Can't end number with letter, add a space or something" |> raise 
-      | '0' .. '9' -> next_pos (); tokenize_num (char :: chars)
+      | '0' .. '9' -> tokenize_num (char :: chars)
       | _ -> 
             let final_num = List.rev chars |> string_of_chars |> int_of_string in
             let token = Num final_num in
@@ -37,10 +38,11 @@ let rec tokenize (txt : string) (tokens : Tokens.t list) : Tokens.t list =
           in
 
   let rec tokenize_word (chars : char list) = 
+    next_pos ();
     if at_eof () |> not then begin
       let char = txt.[!pos] in
       match char with
-      | 'a' .. 'z' | 'A' .. 'Z' | '0' .. '9' -> next_pos (); tokenize_word (char :: chars)
+      | 'a' .. 'z' | 'A' .. 'Z' | '0' .. '9' -> tokenize_word (char :: chars)
       | ' ' | '\t' | '\n' | '\r' ->  
                                     let final_word = List.rev chars |> string_of_chars in
                                     let token = Var final_word in
@@ -56,8 +58,8 @@ let rec tokenize (txt : string) (tokens : Tokens.t list) : Tokens.t list =
     try
       let char = txt.[!pos] in
       match char with
-      | 'a' .. 'z' | 'A' .. 'Z' ->  next_pos (); tokenize_word [char]
-      | '0' .. '9' -> next_pos (); tokenize_num [char]
+      | 'a' .. 'z' | 'A' .. 'Z' ->  tokenize_word [char]
+      | '0' .. '9' -> tokenize_num [char]
       | '+' -> next_pos (); tokenize txt (PLUS :: tokens)
       | '/' -> next_pos (); tokenize txt (DIV :: tokens)
       | '*' -> next_pos (); tokenize txt (MULT :: tokens)
@@ -75,8 +77,8 @@ let rec tokenize (txt : string) (tokens : Tokens.t list) : Tokens.t list =
     (EOF :: tokens) |> List.rev 
 ;;
 
-let rec print_tokens (tokens : Tokens.t list) : unit =
-  let print_token (tok : Tokens.t) : unit = 
+let rec print_tokens (tokens : t list) : unit =
+  let print_token (tok : t) : unit = 
     match tok with
     | Num i -> printf "NUM(%i)\n" i
     | Var s -> printf "VAR(%s)\n" s
@@ -84,8 +86,21 @@ let rec print_tokens (tokens : Tokens.t list) : unit =
     | DIV -> printf "DIV\n"
     | PLUS -> printf "PLUS\n"
     | SUB -> printf "SUB\n"
-    | EOF -> printf "EOF\n" in
-
-  match tokens with 
-  | tok :: ls -> print_token tok; print_tokens ls
-  | [] -> ();;
+    | EQ -> printf "EQ\n"
+    | LPAREN -> printf "LPAREN\n"
+    | RPAREN -> printf "RPAREN\n"
+    | LBRACE -> printf "LBRACE\n"
+    | RBRACE -> printf "RBRACE\n"
+    | LBRACK -> printf "LBRACK\n"
+    | RBRACK -> printf "RBRACK\n"
+    | SEMICOLON -> printf "SEMICOLON\n"
+    | COLON -> printf "COLON\n"
+    | AND -> printf "AND\n"
+    | OR -> printf "OR\n"
+    | EOF -> printf "EOF\n"
+  in
+  match tokens with
+  | [] -> ()
+  | hd :: tl ->
+      print_token hd;
+      print_tokens tl
