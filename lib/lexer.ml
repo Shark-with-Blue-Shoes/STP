@@ -3,9 +3,6 @@ exception Lexing_error of string;;
 open Printf
 open Tokens
 
-let is_alpha = function 'a' .. 'z' | 'A' .. 'Z' -> true | _ -> false
-let is_digit = function '0' .. '9' -> true | _ -> false
-
 let string_of_chars chars = 
   let buf = Buffer.create 16 in
   List.iter (Buffer.add_char buf) chars;
@@ -21,37 +18,37 @@ let reset_pos () =
 
 let rec tokenize (txt : string) (tokens : Tokens.t list) : Tokens.t list =
   
-  let at_eof txt : bool = !pos >= String.length txt in
+  let at_eof () : bool = !pos >= String.length txt in
   (*This tokenizes numbers, it is initiated when the lexer finds a num*)
   let rec tokenize_num (chars : char list) =
-    if at_eof txt |> not then begin
+    if at_eof () |> not then begin
       let char = txt.[!pos] in
-      (*If the character is a digit, then add it to the list and increment position*)
-      if is_digit char then begin
-        next_pos ();
-        tokenize_num (char :: chars) end
-      (*If there is a character right after a number, like 45b, raise an error*)
-      else if is_alpha char then 
-        raise (Lexing_error "Can't end number with letter, add a space or something")
-      (*If the character is neither a digit or alpha, go back to the normal tokenizer, this'll probably change*)
-      else 
-        let final_num = List.rev chars |> string_of_chars |> int_of_string in
-          let token = Num final_num in
-          tokenize txt (token :: tokens) end 
+      match char with
+      | 'a' .. 'z' | 'A' .. 'Z' -> Lexing_error "Can't end number with letter, add a space or something" |> raise 
+      | '0' .. '9' -> next_pos ();
+                      tokenize_num (char :: chars)
+      | _ -> 
+            let final_num = List.rev chars |> string_of_chars |> int_of_string in
+            let token = Num final_num in
+            tokenize txt (token :: tokens) end
     else begin
       let final_num = List.rev chars |> string_of_chars |> int_of_string in
         let token = Num final_num in
             (EOF :: token :: tokens) |> List.rev end
           in
 
-  (*let rec tokenize_word (chars : char list) pos = 
-    if at_eof pos txt |> not then begin
-    else begin
-      let final_num = List.rev chars |> string_of_chars |> int_of_string in
-        let token = Num final_num in
-            (EOF :: token :: tokens) |> List.rev end
+  (*let rec tokenize_word (chars : char list) = 
+    if at_eof () |> not then begin
+      let char = txt.[!pos] in
+      if is_digit char or is_alpha char then begin
+        next_pos;
+        tokenize_word (char :: chars) end
+      else if 
+        raise (Lexing_error "What the helly is this character?");
+    else 
           in*)
-  if at_eof txt |> not then begin
+
+  if at_eof () |> not then begin
     try
       let char = txt.[!pos] in
         if is_digit char then begin
