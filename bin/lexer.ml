@@ -55,7 +55,7 @@ let rec tokenize (txt : string) (pos : int) (tokens : Tokens.t list) : Tokens.t 
 ;;
 
 let rec print_tokens (tokens : Tokens.t list) : unit =
-  let sort_token (tok : Tokens.t) : unit = 
+  let print_token (tok : Tokens.t) : unit = 
     match tok with
     | Num i -> printf "NUM(%i)\n" i
     | MULT -> printf "MULT\n"
@@ -65,5 +65,5 @@ let rec print_tokens (tokens : Tokens.t list) : unit =
     | EOF -> printf "EOF\n" in
 
   match tokens with 
-  | tok :: ls -> sort_token tok; print_tokens ls
+  | tok :: ls -> print_token tok; print_tokens ls
   | [] -> ();;
