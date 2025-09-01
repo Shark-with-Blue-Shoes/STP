@@ -25,8 +25,7 @@ let rec tokenize (txt : string) (tokens : Tokens.t list) : Tokens.t list =
       let char = txt.[!pos] in
       match char with
       | 'a' .. 'z' | 'A' .. 'Z' -> Lexing_error "Can't end number with letter, add a space or something" |> raise 
-      | '0' .. '9' -> next_pos ();
-                      tokenize_num (char :: chars)
+      | '0' .. '9' -> next_pos (); tokenize_num (char :: chars)
       | _ -> 
             let final_num = List.rev chars |> string_of_chars |> int_of_string in
             let token = Num final_num in
@@ -37,32 +36,34 @@ let rec tokenize (txt : string) (tokens : Tokens.t list) : Tokens.t list =
             (EOF :: token :: tokens) |> List.rev end
           in
 
-  (*let rec tokenize_word (chars : char list) = 
+  let rec tokenize_word (chars : char list) = 
     if at_eof () |> not then begin
       let char = txt.[!pos] in
-      if is_digit char or is_alpha char then begin
-        next_pos;
-        tokenize_word (char :: chars) end
-      else if 
-        raise (Lexing_error "What the helly is this character?");
-    else 
-          in*)
+      match char with
+      | 'a' .. 'z' | 'A' .. 'Z' | '0' .. '9' -> next_pos (); tokenize_word (char :: chars)
+      | ' ' | '\t' | '\n' | '\r' ->  
+                                    let final_word = List.rev chars |> string_of_chars in
+                                    let token = Var final_word in
+                                    tokenize txt (token :: tokens)
+      | _ -> Lexing_error "What the helly is this character!" |> raise end
+    else begin
+      let final_word = List.rev chars |> string_of_chars in
+        let token = Var final_word in
+            (EOF :: token :: tokens) |> List.rev end
+          in
 
   if at_eof () |> not then begin
     try
       let char = txt.[!pos] in
-        if is_digit char then begin
-          next_pos ();
-          tokenize_num [char] end
-        else begin
-        next_pos ();
-        match char with
-        | '+' -> tokenize txt (PLUS :: tokens)
-        | '/' -> tokenize txt (DIV :: tokens)
-        | '*' -> tokenize txt (MULT :: tokens)
-        | '-' -> tokenize txt (SUB :: tokens)
-        | ' ' -> tokenize txt tokens
-        | _ -> raise (Lexing_error "Not a symbol dum dum") end
+      match char with
+      | 'a' .. 'z' | 'A' .. 'Z' ->  next_pos (); tokenize_word [char]
+      | '0' .. '9' -> next_pos (); tokenize_num [char]
+      | '+' -> next_pos (); tokenize txt (PLUS :: tokens)
+      | '/' -> next_pos (); tokenize txt (DIV :: tokens)
+      | '*' -> next_pos (); tokenize txt (MULT :: tokens)
+      | '-' -> next_pos (); tokenize txt (SUB :: tokens)
+      | ' ' | '\t' | '\n' | '\r' -> next_pos (); tokenize txt tokens
+      | _ -> raise (Lexing_error "Not a symbol dum dum")
     with 
     | Lexing_error err -> 
         printf "LEXING ERROR: %s\nat offset: %i\n\n\nPrinting retrieved tokens...\n" err !pos; 
