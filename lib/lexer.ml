@@ -23,19 +23,31 @@ let string_to_tok str : Tokens.t =
   | "definition" -> DEFINITION
   | _ -> Var str;;
 
+type pos = { mutable offset: int; mutable line: int}
+
 class position_tracker txt =
   object
-    val mutable pos = 0
+    val mutable line_data : int list = []
+    val pos : pos = { offset = 0; line = 0}
 
-    method next_pos () =
-      pos <- pos + 1
+    method shiftr () =
+      pos.offset <- pos.offset + 1
 
-    method back_pos () =
-      pos <- pos - 1
+    method shiftl () =
+      pos.offset <- pos.offset - 1
+
+    method shiftdown () =
+      (*Put the current offset in the line_data list, 
+      we can retrive it by knowing which line it belongs to*)
+      line_data <- line_data @ [pos.offset];
+      (*Put the offset back to zero, as we are in a newline*)
+      pos.offset <- 0;
+      (*Increment line*)
+      pos.line <- pos.line + 1
 
     method current_pos = pos
 
-    method at_eof () : bool = pos >= String.length txt
+    method at_eof () : bool = pos.offset >= String.length txt
   end
 
 class lexer (str : string) = object (self)
@@ -48,39 +60,39 @@ class lexer (str : string) = object (self)
   (*Tokenizes txt*)
   method tokenize : unit =
 
-  let tokenize_next () = pos_tracker#next_pos (); self#tokenize in
+  let tokenize_next () = pos_tracker#shiftr (); self#tokenize in
 
   (*This tokenizes numbers, it is initiated when the lexer finds a num*)
   let rec tokenize_num (chars : char list) =
-    pos_tracker#next_pos ();
+    pos_tracker#shiftr ();
     if pos_tracker#at_eof () |> not then begin
-      let char = txt.[pos_tracker#current_pos] in
+      let char = txt.[pos_tracker#current_pos.offset] in
       match char with
       | 'a' .. 'z' | 'A' .. 'Z' -> Lexing_error "Can't end number with letter, add a space or something" |> raise 
-      | '0' .. '9' -> tokenize_num (char :: chars)
-      | _ -> pos_tracker#back_pos ();
-            let final_num = List.rev chars |> string_of_chars |> int_of_string in
+      | '0' .. '9' -> chars @ [char] |> tokenize_num 
+      | _ -> pos_tracker#shiftl ();
+            let final_num = chars |> string_of_chars |> int_of_string in
             let token = Num final_num in token end
     else
-      let final_num = List.rev chars |> string_of_chars |> int_of_string in
+      let final_num = chars |> string_of_chars |> int_of_string in
         let token = Num final_num in token
           in
 
   let rec tokenize_word (chars : char list) : Tokens.t = 
-    pos_tracker#next_pos ();
+    pos_tracker#shiftr ();
     if pos_tracker#at_eof () |> not then begin
-      let char = txt.[pos_tracker#current_pos] in
+      let char = txt.[pos_tracker#current_pos.offset] in
       match char with
-      | 'a' .. 'z' | 'A' .. 'Z' | '0' .. '9' | '_' -> tokenize_word (char :: chars)
-      | _ -> pos_tracker#back_pos (); let token = List.rev chars |> string_of_chars |> string_to_tok in token end
+      | 'a' .. 'z' | 'A' .. 'Z' | '0' .. '9' | '_' -> chars @ [char] |> tokenize_word
+      | _ -> pos_tracker#shiftl (); let token = chars |> string_of_chars |> string_to_tok in token end
     else 
-      let token = List.rev chars |> string_of_chars |> string_to_tok in token
+      let token = chars |> string_of_chars |> string_to_tok in token
           in
 
   let rec skip_comment () : unit = 
-    pos_tracker#next_pos ();
+    pos_tracker#shiftr ();
     if pos_tracker#at_eof () |> not then begin
-      let char = txt.[pos_tracker#current_pos] in
+      let char = txt.[pos_tracker#current_pos.offset] in
       match char with
       | '\\' -> ()
       | _ -> skip_comment ()
@@ -90,7 +102,7 @@ class lexer (str : string) = object (self)
 
   if pos_tracker#at_eof () |> not then begin
     try
-      let char = txt.[pos_tracker#current_pos] in
+      let char = txt.[pos_tracker#current_pos.offset] in
       match char with
       | ' ' | '\t' | '\n' | '\r' -> tokenize_next ()
       | '\\' -> skip_comment (); tokenize_next ()
@@ -115,17 +127,15 @@ class lexer (str : string) = object (self)
                          | ',' -> COMMA
                          | '.' -> PERIOD
                          | _ -> Lexing_error "Does not match any known char" |> raise in
-                              tokens <- token :: tokens;
+                                tokens <- tokens @ [token];
                                   tokenize_next ()
     with 
     | Lexing_error err -> 
-        printf "LEXING ERROR: %s\nat offset: %i\n\n\nPrinting retrieved tokens...\n" err pos_tracker#current_pos; 
-        tokens <- List.rev tokens;
+        printf "LEXING ERROR: %s\nat offset: %i\n\n\nPrinting retrieved tokens...\n" err pos_tracker#current_pos.offset; 
     | err -> 
-        Printexc.to_string err |> printf "ANOMALY: %s\n\n\nPrinting retrieved tokens...\n\n";
-        tokens <- List.rev tokens; end
-  else 
-    tokens <- (EOF :: tokens) |> List.rev 
+        Printexc.to_string err |> printf "ANOMALY: %s\n\n\nPrinting retrieved tokens...\n\n"; end
+  else
+    tokens <- tokens @ [EOF]
 
   method pretty_print : unit =
     let rec print_tokens toks : unit =
