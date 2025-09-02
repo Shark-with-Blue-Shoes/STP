@@ -1,2 +1,4 @@
 (test
- (name test_STP))
+ (name test_STP)
+ (libraries STP)
+ )
