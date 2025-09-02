@@ -28,6 +28,8 @@ let string_to_tok str : Tokens.t =
   | "else" -> ELSE
   | "true" -> TRUE
   | "false" -> FALSE
+  | "lemma" -> LEMMA
+  | "forall" -> FORALL
   | _ -> Var str;;
 
 let rec tokenize (txt : string) (tokens : Tokens.t list) : Tokens.t list =
@@ -56,10 +58,8 @@ let rec tokenize (txt : string) (tokens : Tokens.t list) : Tokens.t list =
     if at_eof () |> not then begin
       let char = txt.[!pos] in
       match char with
-      | 'a' .. 'z' | 'A' .. 'Z' | '0' .. '9' -> tokenize_word (char :: chars)
-      | ' ' | '\t' | '\n' | '\r' ->  
-          let token = List.rev chars |> string_of_chars |> string_to_tok in token
-      | _ -> Lexing_error "What the helly is this character!" |> raise end
+      | 'a' .. 'z' | 'A' .. 'Z' | '0' .. '9' | '_' -> tokenize_word (char :: chars)
+      | _ -> back_pos (); let token = List.rev chars |> string_of_chars |> string_to_tok in token end
     else 
       let token = List.rev chars |> string_of_chars |> string_to_tok in token
           in
@@ -87,6 +87,8 @@ let rec tokenize (txt : string) (tokens : Tokens.t list) : Tokens.t list =
                          | ':' -> COLON
                          | '&' -> AND
                          | '|' -> OR
+                         | ',' -> COMMA
+                         | '.' -> PERIOD
                          | _ -> Lexing_error "Does not match any known char" |> raise in
                                   tokenize_next (token :: tokens)
     with 
@@ -126,6 +128,10 @@ let rec print_tokens (tokens : t list) : unit =
     | ELSE -> printf "ELSE\n"
     | TRUE -> printf "TRUE"
     | FALSE -> printf "FALSE\n"
+    | LEMMA -> printf "LEMMA\n"
+    | FORALL -> printf "FORALL\n"
+    | COMMA -> printf "COMMA\n"
+    | PERIOD -> printf "PERIOD\n"
     | EOF -> printf "EOF\n"
   in
   match tokens with

@@ -16,10 +16,14 @@ type t =
   | COLON
   | AND
   | OR
+  | COMMA
+  | PERIOD
   | MATCH
   | WITH
   | IF
   | ELSE
   | TRUE
   | FALSE
+  | LEMMA
+  | FORALL
   | EOF
