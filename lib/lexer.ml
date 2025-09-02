@@ -130,37 +130,38 @@ class lexer (str : string) = object (self)
   method pretty_print : unit =
     let rec print_tokens toks : unit =
       let print_token (tok : t) : unit = 
+        let str = 
         match tok with
-        | Num i -> printf "NUM(%i)\n" i
-        | Var s -> printf "VAR(%s)\n" s
-        | MULT -> printf "MULT\n"
-        | DIV -> printf "DIV\n"
-        | PLUS -> printf "PLUS\n"
-        | SUB -> printf "SUB\n"
-        | EQ -> printf "EQ\n"
-        | LPAREN -> printf "LPAREN\n"
-        | RPAREN -> printf "RPAREN\n"
-        | LBRACE -> printf "LBRACE\n"
-        | RBRACE -> printf "RBRACE\n"
-        | LBRACK -> printf "LBRACK\n"
-        | RBRACK -> printf "RBRACK\n"
-        | SEMICOLON -> printf "SEMICOLON\n"
-        | COLON -> printf "COLON\n"
-        | AND -> printf "AND\n"
-        | OR -> printf "OR\n"
-        | MATCH -> printf "MATCH\n"
-        | WITH -> printf "WITH\n"
-        | IF -> printf "IF\n"
-        | ELSE -> printf "ELSE\n"
-        | TRUE -> printf "TRUE"
-        | FALSE -> printf "FALSE\n"
-        | LEMMA -> printf "LEMMA\n"
-        | FORALL -> printf "FORALL\n"
-        | COMMA -> printf "COMMA\n"
-        | PERIOD -> printf "PERIOD\n"
-        | DEFINITION -> printf "DEFINITION\n"
-        | NAT -> printf "NAT\n"
-        | EOF -> printf "EOF\n"
+        | Num i -> sprintf "NUM(%i)\n" i
+        | Var s -> sprintf "VAR(%s)\n" s
+        | MULT -> "MULT\n"
+        | DIV -> "DIV\n"
+        | PLUS -> "PLUS\n"
+        | SUB -> "SUB\n"
+        | EQ -> "EQ\n"
+        | LPAREN -> "LPAREN\n"
+        | RPAREN -> "RPAREN\n"
+        | LBRACE -> "LBRACE\n"
+        | RBRACE -> "RBRACE\n"
+        | LBRACK -> "LBRACK\n"
+        | RBRACK -> "RBRACK\n"
+        | SEMICOLON -> "SEMICOLON\n"
+        | COLON -> "COLON\n"
+        | AND -> "AND\n"
+        | OR -> "OR\n"
+        | MATCH -> "MATCH\n"
+        | WITH -> "WITH\n"
+        | IF -> "IF\n"
+        | ELSE -> "ELSE\n"
+        | TRUE -> "TRUE"
+        | FALSE -> "FALSE\n"
+        | LEMMA -> "LEMMA\n"
+        | FORALL -> "FORALL\n"
+        | COMMA -> "COMMA\n"
+        | PERIOD -> "PERIOD\n"
+        | DEFINITION -> "DEFINITION\n"
+        | NAT -> "NAT\n"
+        | EOF -> "EOF\n" in print_string str;
     in
     match toks with
     | [] -> ()
