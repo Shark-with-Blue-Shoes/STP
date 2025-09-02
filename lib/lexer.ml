@@ -30,6 +30,8 @@ let string_to_tok str : Tokens.t =
   | "false" -> FALSE
   | "lemma" -> LEMMA
   | "forall" -> FORALL
+  | "nat" -> NAT
+  | "definition" -> DEFINITION
   | _ -> Var str;;
 
 let rec tokenize (txt : string) (tokens : Tokens.t list) : Tokens.t list =
@@ -64,11 +66,23 @@ let rec tokenize (txt : string) (tokens : Tokens.t list) : Tokens.t list =
       let token = List.rev chars |> string_of_chars |> string_to_tok in token
           in
 
+  let rec skip_comment () : unit = 
+    next_pos ();
+    if at_eof () |> not then begin
+      let char = txt.[!pos] in
+      match char with
+      | '\\' -> ()
+      | _ -> skip_comment ()
+    end
+    else 
+    Lexing_error "Forgot to close comment" |> raise in
+
   if at_eof () |> not then begin
     try
       let char = txt.[!pos] in
       match char with
       | ' ' | '\t' | '\n' | '\r' -> tokenize_next tokens
+      | '\\' -> skip_comment (); tokenize_next tokens
       | _ -> let token = match char with
                          | 'a' .. 'z' | 'A' .. 'Z' ->  tokenize_word [char]
                          | '0' .. '9' -> tokenize_num [char]
@@ -132,6 +146,8 @@ let rec print_tokens (tokens : t list) : unit =
     | FORALL -> printf "FORALL\n"
     | COMMA -> printf "COMMA\n"
     | PERIOD -> printf "PERIOD\n"
+    | DEFINITION -> printf "DEFINITION\n"
+    | NAT -> printf "NAT\n"
     | EOF -> printf "EOF\n"
   in
   match tokens with

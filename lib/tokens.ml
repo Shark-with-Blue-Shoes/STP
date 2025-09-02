@@ -26,4 +26,6 @@ type t =
   | FALSE
   | LEMMA
   | FORALL
+  | DEFINITION
+  | NAT
   | EOF
