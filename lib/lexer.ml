@@ -19,6 +19,17 @@ let back_pos () =
 let reset_pos () = 
   pos := 0;;
 
+
+let string_to_tok str : Tokens.t = 
+  match str with
+  | "match" -> MATCH
+  | "with" -> WITH
+  | "if" -> IF
+  | "else" -> ELSE
+  | "true" -> TRUE
+  | "false" -> FALSE
+  | _ -> Var str;;
+
 let rec tokenize (txt : string) (tokens : Tokens.t list) : Tokens.t list =
 
   let tokenize_next cur_tokens = next_pos (); tokenize txt cur_tokens in
@@ -35,9 +46,9 @@ let rec tokenize (txt : string) (tokens : Tokens.t list) : Tokens.t list =
       | _ -> back_pos ();
             let final_num = List.rev chars |> string_of_chars |> int_of_string in
             let token = Num final_num in token end
-    else begin
+    else
       let final_num = List.rev chars |> string_of_chars |> int_of_string in
-        let token = Num final_num in token end
+        let token = Num final_num in token
           in
 
   let rec tokenize_word (chars : char list) : Tokens.t = 
@@ -47,13 +58,10 @@ let rec tokenize (txt : string) (tokens : Tokens.t list) : Tokens.t list =
       match char with
       | 'a' .. 'z' | 'A' .. 'Z' | '0' .. '9' -> tokenize_word (char :: chars)
       | ' ' | '\t' | '\n' | '\r' ->  
-                                    let final_word = List.rev chars |> string_of_chars in
-                                    let token = Var final_word in
-                                    token
+          let token = List.rev chars |> string_of_chars |> string_to_tok in token
       | _ -> Lexing_error "What the helly is this character!" |> raise end
-    else begin
-      let final_word = List.rev chars |> string_of_chars in
-        let token = Var final_word in token end
+    else 
+      let token = List.rev chars |> string_of_chars |> string_to_tok in token
           in
 
   if at_eof () |> not then begin
@@ -68,6 +76,17 @@ let rec tokenize (txt : string) (tokens : Tokens.t list) : Tokens.t list =
                          | '/' -> DIV
                          | '*' -> MULT
                          | '-' -> SUB 
+                         | '=' -> EQ
+                         | '(' -> LPAREN
+                         | ')' -> RPAREN
+                         | '{' -> LBRACE
+                         | '}' -> RBRACE
+                         | '[' -> LBRACK
+                         | ']' -> RBRACK
+                         | ';' -> SEMICOLON
+                         | ':' -> COLON
+                         | '&' -> AND
+                         | '|' -> OR
                          | _ -> Lexing_error "Does not match any known char" |> raise in
                                   tokenize_next (token :: tokens)
     with 
@@ -101,6 +120,12 @@ let rec print_tokens (tokens : t list) : unit =
     | COLON -> printf "COLON\n"
     | AND -> printf "AND\n"
     | OR -> printf "OR\n"
+    | MATCH -> printf "MATCH\n"
+    | WITH -> printf "WITH\n"
+    | IF -> printf "IF\n"
+    | ELSE -> printf "ELSE\n"
+    | TRUE -> printf "TRUE"
+    | FALSE -> printf "FALSE\n"
     | EOF -> printf "EOF\n"
   in
   match tokens with

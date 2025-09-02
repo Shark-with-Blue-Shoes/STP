@@ -16,4 +16,10 @@ type t =
   | COLON
   | AND
   | OR
+  | MATCH
+  | WITH
+  | IF
+  | ELSE
+  | TRUE
+  | FALSE
   | EOF
