@@ -8,17 +8,6 @@ let string_of_chars chars =
   List.iter (Buffer.add_char buf) chars;
   Buffer.contents buf;;
 
-let pos = ref 0;;
-
-let next_pos () = 
-  pos := !pos+1;;
-
-let back_pos () = 
-  pos := !pos-1;;
-
-let reset_pos () = 
-  pos := 0;;
-
 
 let string_to_tok str : Tokens.t = 
   match str with
@@ -34,20 +23,38 @@ let string_to_tok str : Tokens.t =
   | "definition" -> DEFINITION
   | _ -> Var str;;
 
-let rec tokenize (txt : string) (tokens : Tokens.t list) : Tokens.t list =
+class lexer (str : string) = object (self)
+  (*The string being lexed*)
+  val txt : string = str
+ 
+  (*Position is origiinally 0 when initalized*)
+  val mutable pos = 0
 
-  let tokenize_next cur_tokens = next_pos (); tokenize txt cur_tokens in
+  (*Increment pos*)
+  method next_pos () = 
+    pos <- pos+1
 
-  let at_eof () : bool = !pos >= String.length txt in
+  (*decrement pos*)
+  method back_pos () = 
+    pos <- pos-1
+ 
+  val mutable tokens = []
+  
+  (*Tokenizes txt*)
+  method tokenize : unit =
+
+  let tokenize_next () = self#next_pos (); self#tokenize in
+
+  let at_eof () : bool = pos >= String.length txt in
   (*This tokenizes numbers, it is initiated when the lexer finds a num*)
   let rec tokenize_num (chars : char list) =
-    next_pos ();
+    self#next_pos ();
     if at_eof () |> not then begin
-      let char = txt.[!pos] in
+      let char = txt.[pos] in
       match char with
       | 'a' .. 'z' | 'A' .. 'Z' -> Lexing_error "Can't end number with letter, add a space or something" |> raise 
       | '0' .. '9' -> tokenize_num (char :: chars)
-      | _ -> back_pos ();
+      | _ -> self#back_pos ();
             let final_num = List.rev chars |> string_of_chars |> int_of_string in
             let token = Num final_num in token end
     else
@@ -56,20 +63,20 @@ let rec tokenize (txt : string) (tokens : Tokens.t list) : Tokens.t list =
           in
 
   let rec tokenize_word (chars : char list) : Tokens.t = 
-    next_pos ();
+    self#next_pos ();
     if at_eof () |> not then begin
-      let char = txt.[!pos] in
+      let char = txt.[pos] in
       match char with
       | 'a' .. 'z' | 'A' .. 'Z' | '0' .. '9' | '_' -> tokenize_word (char :: chars)
-      | _ -> back_pos (); let token = List.rev chars |> string_of_chars |> string_to_tok in token end
+      | _ -> self#back_pos (); let token = List.rev chars |> string_of_chars |> string_to_tok in token end
     else 
       let token = List.rev chars |> string_of_chars |> string_to_tok in token
           in
 
   let rec skip_comment () : unit = 
-    next_pos ();
+    self#next_pos ();
     if at_eof () |> not then begin
-      let char = txt.[!pos] in
+      let char = txt.[pos] in
       match char with
       | '\\' -> ()
       | _ -> skip_comment ()
@@ -79,10 +86,10 @@ let rec tokenize (txt : string) (tokens : Tokens.t list) : Tokens.t list =
 
   if at_eof () |> not then begin
     try
-      let char = txt.[!pos] in
+      let char = txt.[pos] in
       match char with
-      | ' ' | '\t' | '\n' | '\r' -> tokenize_next tokens
-      | '\\' -> skip_comment (); tokenize_next tokens
+      | ' ' | '\t' | '\n' | '\r' -> tokenize_next ()
+      | '\\' -> skip_comment (); tokenize_next ()
       | _ -> let token = match char with
                          | 'a' .. 'z' | 'A' .. 'Z' ->  tokenize_word [char]
                          | '0' .. '9' -> tokenize_num [char]
@@ -104,54 +111,58 @@ let rec tokenize (txt : string) (tokens : Tokens.t list) : Tokens.t list =
                          | ',' -> COMMA
                          | '.' -> PERIOD
                          | _ -> Lexing_error "Does not match any known char" |> raise in
-                                  tokenize_next (token :: tokens)
+                              tokens <- token :: tokens;
+                                  tokenize_next ()
     with 
     | Lexing_error err -> 
-        printf "LEXING ERROR: %s\nat offset: %i\n\n\nPrinting retrieved tokens...\n" err !pos; 
-        tokens |> List.rev 
+        printf "LEXING ERROR: %s\nat offset: %i\n\n\nPrinting retrieved tokens...\n" err pos; 
+        tokens <- List.rev tokens;
     | err -> 
         Printexc.to_string err |> printf "ANOMALY: %s\n\n\nPrinting retrieved tokens...\n\n";
-        tokens |> List.rev end
+        tokens <- List.rev tokens; end
   else 
-    (EOF :: tokens) |> List.rev 
-;;
+    tokens <- (EOF :: tokens) |> List.rev 
 
-let rec print_tokens (tokens : t list) : unit =
-  let print_token (tok : t) : unit = 
-    match tok with
-    | Num i -> printf "NUM(%i)\n" i
-    | Var s -> printf "VAR(%s)\n" s
-    | MULT -> printf "MULT\n"
-    | DIV -> printf "DIV\n"
-    | PLUS -> printf "PLUS\n"
-    | SUB -> printf "SUB\n"
-    | EQ -> printf "EQ\n"
-    | LPAREN -> printf "LPAREN\n"
-    | RPAREN -> printf "RPAREN\n"
-    | LBRACE -> printf "LBRACE\n"
-    | RBRACE -> printf "RBRACE\n"
-    | LBRACK -> printf "LBRACK\n"
-    | RBRACK -> printf "RBRACK\n"
-    | SEMICOLON -> printf "SEMICOLON\n"
-    | COLON -> printf "COLON\n"
-    | AND -> printf "AND\n"
-    | OR -> printf "OR\n"
-    | MATCH -> printf "MATCH\n"
-    | WITH -> printf "WITH\n"
-    | IF -> printf "IF\n"
-    | ELSE -> printf "ELSE\n"
-    | TRUE -> printf "TRUE"
-    | FALSE -> printf "FALSE\n"
-    | LEMMA -> printf "LEMMA\n"
-    | FORALL -> printf "FORALL\n"
-    | COMMA -> printf "COMMA\n"
-    | PERIOD -> printf "PERIOD\n"
-    | DEFINITION -> printf "DEFINITION\n"
-    | NAT -> printf "NAT\n"
-    | EOF -> printf "EOF\n"
-  in
-  match tokens with
-  | [] -> ()
-  | hd :: tl ->
-      print_token hd;
-      print_tokens tl
+  method pretty_print : unit =
+    let rec print_tokens toks : unit =
+      let print_token (tok : t) : unit = 
+        match tok with
+        | Num i -> printf "NUM(%i)\n" i
+        | Var s -> printf "VAR(%s)\n" s
+        | MULT -> printf "MULT\n"
+        | DIV -> printf "DIV\n"
+        | PLUS -> printf "PLUS\n"
+        | SUB -> printf "SUB\n"
+        | EQ -> printf "EQ\n"
+        | LPAREN -> printf "LPAREN\n"
+        | RPAREN -> printf "RPAREN\n"
+        | LBRACE -> printf "LBRACE\n"
+        | RBRACE -> printf "RBRACE\n"
+        | LBRACK -> printf "LBRACK\n"
+        | RBRACK -> printf "RBRACK\n"
+        | SEMICOLON -> printf "SEMICOLON\n"
+        | COLON -> printf "COLON\n"
+        | AND -> printf "AND\n"
+        | OR -> printf "OR\n"
+        | MATCH -> printf "MATCH\n"
+        | WITH -> printf "WITH\n"
+        | IF -> printf "IF\n"
+        | ELSE -> printf "ELSE\n"
+        | TRUE -> printf "TRUE"
+        | FALSE -> printf "FALSE\n"
+        | LEMMA -> printf "LEMMA\n"
+        | FORALL -> printf "FORALL\n"
+        | COMMA -> printf "COMMA\n"
+        | PERIOD -> printf "PERIOD\n"
+        | DEFINITION -> printf "DEFINITION\n"
+        | NAT -> printf "NAT\n"
+        | EOF -> printf "EOF\n"
+    in
+    match toks with
+    | [] -> ()
+    | hd :: tl ->
+        print_token hd;
+        print_tokens tl in 
+    print_tokens tokens
+end
+
