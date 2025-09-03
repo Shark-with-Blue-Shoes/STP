@@ -2,6 +2,7 @@ exception Lexing_error of string;;
 
 open Printf
 open Tokens
+open Printer
 
 let string_of_chars chars = 
   let buf = Buffer.create 16 in
@@ -61,7 +62,8 @@ class lexer (str : string) = object (self)
     if pos_tracker#at_eof () |> not then begin
       let char = txt.[pos_tracker#current_pos] in
       match char with
-      | 'a' .. 'z' | 'A' .. 'Z' -> Lexing_error "Can't end number with letter, add a space or something" |> raise 
+      | 'a' .. 'z' | 'A' .. 'Z' ->  
+          Lexing_error "Can't end number with letter, add a space or something" |> raise;
       | '0' .. '9' -> chars @ [char] |> tokenize_num 
       | _ -> pos_tracker#shiftl ();
             let final_num = chars |> string_of_chars |> int_of_string in
@@ -123,52 +125,11 @@ class lexer (str : string) = object (self)
                                 tokens <- tokens @ [token];
                                   tokenize_next ()
     with 
-    | Lexing_error err -> 
-        printf "LEXING ERROR: %s\nat offset: %i\n\n\nPrinting retrieved tokens...\n" err pos_tracker#current_pos; 
+    | Lexing_error err -> print_tokens tokens;
+        printf "\n\n\nPrinted Retrieved Tokens\n\nLEXING ERROR: %s\nat offset: %i\n" err pos_tracker#current_pos; 
     | err -> 
-        Printexc.to_string err |> printf "ANOMALY: %s\n\n\nPrinting retrieved tokens...\n\n"; end
+        Printexc.to_string err |> printf "ANOMALY: %s\n"; end
   else
     tokens <- tokens @ [EOF]
 end
 
-
-let rec print_tokens toks : unit =
-  let print_token (tok : t) : unit = 
-    let str = 
-    match tok with
-    | Num i -> sprintf "NUM(%i)" i
-    | Var s -> sprintf "VAR(%s)" s
-    | MULT -> "MULT"
-    | DIV -> "DIV"
-    | PLUS -> "PLUS"
-    | SUB -> "SUB"
-    | EQ -> "EQ"
-    | LPAREN -> "LPAREN"
-    | RPAREN -> "RPAREN"
-    | LBRACE -> "LBRACE"
-    | RBRACE -> "RBRACE"
-    | LBRACK -> "LBRACK"
-    | RBRACK -> "RBRACK"
-    | SEMICOLON -> "SEMICOLON"
-    | COLON -> "COLON"
-    | AND -> "AND"
-    | OR -> "OR"
-    | MATCH -> "MATCH"
-    | WITH -> "WITH"
-    | IF -> "IF"
-    | ELSE -> "ELSE"
-    | TRUE -> "TRUE"
-    | FALSE -> "FALSE"
-    | LEMMA -> "LEMMA"
-    | FORALL -> "FORALL"
-    | COMMA -> "COMMA"
-    | PERIOD -> "PERIOD"
-    | DEFINITION -> "DEFINITION"
-    | NAT -> "NAT"
-    | EOF -> "EOF" in printf "%s\n" str;
-in
-match toks with
-| [] -> ()
-| hd :: tl ->
-    print_token hd;
-    print_tokens tl;;

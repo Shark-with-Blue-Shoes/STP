@@ -1,5 +1,6 @@
 open STP.Lexer
 open STP.Parser
+open STP.Printer
 
 open Printf
 
@@ -20,7 +21,9 @@ let interp file =
   print_string "interpreting file...\n";
   let str = read_file file in
     let lex = new lexer str in
-      let _ = lex#tokenize in ();;
+      let _ = lex#tokenize in
+        let ast = parse_expr lex#get_tokens in
+          print_expr ast;;
 
 let () = 
   try
