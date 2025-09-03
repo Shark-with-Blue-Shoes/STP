@@ -7,6 +7,6 @@ let interp file =
   let str = read_file file in
     let lex = new lexer str in
       let _ = lex#tokenize in
-      lex#pretty_print;;
+      ();;
 
 let () = interp "test.stp";;

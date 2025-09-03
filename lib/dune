@@ -1,4 +1,4 @@
 (library
  (name STP)
- (modules tokens lexer)
+ (modules tokens lexer parser)
  )

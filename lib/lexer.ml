@@ -46,8 +46,10 @@ class lexer (str : string) = object (self)
   val txt : string = str
  
   val pos_tracker = new position_tracker str 
-  val mutable tokens = []
+  val mutable tokens : Tokens.t list = []
   
+  method get_tokens = tokens
+
   (*Tokenizes txt*)
   method tokenize : unit =
 
@@ -127,48 +129,46 @@ class lexer (str : string) = object (self)
         Printexc.to_string err |> printf "ANOMALY: %s\n\n\nPrinting retrieved tokens...\n\n"; end
   else
     tokens <- tokens @ [EOF]
-
-  method pretty_print : unit =
-    let rec print_tokens toks : unit =
-      let print_token (tok : t) : unit = 
-        let str = 
-        match tok with
-        | Num i -> sprintf "NUM(%i)\n" i
-        | Var s -> sprintf "VAR(%s)\n" s
-        | MULT -> "MULT\n"
-        | DIV -> "DIV\n"
-        | PLUS -> "PLUS\n"
-        | SUB -> "SUB\n"
-        | EQ -> "EQ\n"
-        | LPAREN -> "LPAREN\n"
-        | RPAREN -> "RPAREN\n"
-        | LBRACE -> "LBRACE\n"
-        | RBRACE -> "RBRACE\n"
-        | LBRACK -> "LBRACK\n"
-        | RBRACK -> "RBRACK\n"
-        | SEMICOLON -> "SEMICOLON\n"
-        | COLON -> "COLON\n"
-        | AND -> "AND\n"
-        | OR -> "OR\n"
-        | MATCH -> "MATCH\n"
-        | WITH -> "WITH\n"
-        | IF -> "IF\n"
-        | ELSE -> "ELSE\n"
-        | TRUE -> "TRUE"
-        | FALSE -> "FALSE\n"
-        | LEMMA -> "LEMMA\n"
-        | FORALL -> "FORALL\n"
-        | COMMA -> "COMMA\n"
-        | PERIOD -> "PERIOD\n"
-        | DEFINITION -> "DEFINITION\n"
-        | NAT -> "NAT\n"
-        | EOF -> "EOF\n" in print_string str;
-    in
-    match toks with
-    | [] -> ()
-    | hd :: tl ->
-        print_token hd;
-        print_tokens tl in 
-    print_tokens tokens
 end
 
+
+let rec print_tokens toks : unit =
+  let print_token (tok : t) : unit = 
+    let str = 
+    match tok with
+    | Num i -> sprintf "NUM(%i)" i
+    | Var s -> sprintf "VAR(%s)" s
+    | MULT -> "MULT"
+    | DIV -> "DIV"
+    | PLUS -> "PLUS"
+    | SUB -> "SUB"
+    | EQ -> "EQ"
+    | LPAREN -> "LPAREN"
+    | RPAREN -> "RPAREN"
+    | LBRACE -> "LBRACE"
+    | RBRACE -> "RBRACE"
+    | LBRACK -> "LBRACK"
+    | RBRACK -> "RBRACK"
+    | SEMICOLON -> "SEMICOLON"
+    | COLON -> "COLON"
+    | AND -> "AND"
+    | OR -> "OR"
+    | MATCH -> "MATCH"
+    | WITH -> "WITH"
+    | IF -> "IF"
+    | ELSE -> "ELSE"
+    | TRUE -> "TRUE"
+    | FALSE -> "FALSE"
+    | LEMMA -> "LEMMA"
+    | FORALL -> "FORALL"
+    | COMMA -> "COMMA"
+    | PERIOD -> "PERIOD"
+    | DEFINITION -> "DEFINITION"
+    | NAT -> "NAT"
+    | EOF -> "EOF" in printf "%s\n" str;
+in
+match toks with
+| [] -> ()
+| hd :: tl ->
+    print_token hd;
+    print_tokens tl;;
