@@ -1,5 +1,6 @@
 open Printf
 open Tokens
+open Parser
 
 let rec print_tokens toks : unit =
   let print_token (tok : Tokens.t) : unit = 
@@ -42,8 +43,7 @@ match toks with
     print_token hd;
     print_tokens tl;;
 
-let print_expr (expr : Parser.expr) =
-  let open Parser in
+let print_expr (expr : expr) =
   let format_op op =
     match op with
     | Add -> "+"
@@ -51,10 +51,10 @@ let print_expr (expr : Parser.expr) =
     | Mult -> "*"
     | Div -> "//" in
 
-  let rec format_peano (p : Parser.peano) : string =
+  let rec format_peano (p : peano) : string =
     match p with
-    | Parser.S p -> sprintf "S (%s)" (format_peano p)
-    | Parser.O -> "O" in
+    | S p -> sprintf "S (%s)" (format_peano p)
+    | O -> "O" in
 
   let rec format_expr expr = 
     match expr with 
