@@ -11,10 +11,10 @@ let run_assistant str =
         let ast = parse_expr tokens in
           print_expr ast;
   with 
-  | Lexing_error (err, toks, pos) -> printf "LEXING ERROR: %s\n\n" err;
-                                printf "line: %d, offset: %d\n\n\n" pos.line_num pos.bol_off;
-                                print_string "Printing retrieved tokens...\n\n";
-                                print_tokens toks;
+  | Lexing_error (err, toks, pos) -> 
+      printf "LEXING ERROR at line %d, offset %d: %s\n\n\n" pos.line_num pos.bol_off err;
+      print_string "Printing retrieved tokens...\n\n";
+      print_tokens toks;
   | e -> Printexc.to_string e |> printf "ANOMALY: %s\n";;
 
 
