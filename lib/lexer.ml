@@ -1,8 +1,6 @@
 exception Lexing_error of string;;
 
-open Printf
 open Tokens
-open Printer
 
 let string_of_chars chars = 
   let buf = Buffer.create 16 in
@@ -63,16 +61,13 @@ class lexer (str : string) = object (self)
   val txt : string = str
  
   val pos_tracker = new position_tracker str 
-  val mutable tokens : Tokens.t list = []
   
-  method get_tokens = tokens
+(*Tokenizes txt*)
+method tokenize (tokens : Tokens.t list) : Tokens.t list =
 
-  (*Tokenizes txt*)
-  method tokenize : unit =
+  let tokenize_next toks = pos_tracker#shiftr (); self#tokenize toks in
 
-  let tokenize_next () = pos_tracker#shiftr (); self#tokenize in
-
-  let tokenize_nline () = pos_tracker#new_line (); self#tokenize in
+  let tokenize_nline toks = pos_tracker#new_line (); self#tokenize toks in
 
   (*This tokenizes numbers, it is initiated when the lexer finds a num*)
   let rec tokenize_num (chars : char list) =
@@ -114,12 +109,11 @@ class lexer (str : string) = object (self)
     Lexing_error "Forgot to close comment" |> raise in
 
   if pos_tracker#at_eof () |> not then begin
-    try
       let char = txt.[pos_tracker#current_off] in
       match char with
-      | ' ' | '\t' | '\r' -> tokenize_next () 
-      | '\n' -> tokenize_nline ()
-      | '\\' -> skip_comment (); tokenize_next ()
+      | ' ' | '\t' | '\r' -> tokenize_next tokens
+      | '\n' -> tokenize_nline tokens
+      | '\\' -> skip_comment (); tokenize_next tokens
       | _ -> let token = match char with
                          | 'a' .. 'z' | 'A' .. 'Z' ->  tokenize_word [char]
                          | '0' .. '9' -> tokenize_num [char]
@@ -141,16 +135,8 @@ class lexer (str : string) = object (self)
                          | ',' -> COMMA
                          | '.' -> PERIOD
                          | _ -> Lexing_error "Does not match any known char" |> raise in
-                                tokens <- tokens @ [token];
-                                  tokenize_next ()
-    with 
-    | Lexing_error err -> print_tokens tokens;
-let str = sprintf "\n\n\nPrinted Retrieved Tokens\n\nLEXING ERROR: %s\nat line: %i offset: %i\n"
-err pos_tracker#current_line pos_tracker#current_bol_off in
-      print_string str;
-    | err -> 
-        Printexc.to_string err |> printf "ANOMALY: %s\n"; end
+                                  tokenize_next (tokens @ [token]) end
   else
-    tokens <- tokens @ [EOF]
+    tokens @ [EOF]
 end
 
