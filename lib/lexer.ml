@@ -24,22 +24,38 @@ let string_to_tok str : Tokens.t =
   | "definition" -> DEFINITION
   | _ -> Var str;;
 
-type pos = { mutable offset: int; mutable line: int}
+type position = {
+	mutable line_num : int; (*The line number*)
+	mutable bol_off : int; (*The offset between the cursor and the start of the line*)
+	mutable offset : int; (*The offset between the cursor and the start of the file*)
+};;
 
 class position_tracker txt =
-  object
+  object (self)
     
-    val mutable pos = 0
+    val pos : position = {line_num = 1; bol_off = 0; offset = 0}
     
     method shiftr () =
-      pos <- pos + 1
+      pos.offset <- pos.offset + 1;
+      pos.bol_off <- pos.bol_off + 1
    
     method shiftl () =
-      pos <- pos - 1
+      pos.offset <- pos.offset - 1;
+      pos.bol_off <- pos.bol_off - 1
 
-    method current_pos = pos
+    method reset_bol_off () =
+      pos.bol_off <- 0;
+    
+    method new_line () =
+      pos.line_num <- pos.line_num + 1;
+      self#reset_bol_off ();
+      self#shiftr ()
 
-    method at_eof () : bool = pos >= String.length txt
+    method current_off = pos.offset
+    method current_line = pos.line_num
+    method current_bol_off = pos.bol_off
+
+    method at_eof () : bool = pos.offset >= String.length txt
   end
 
 class lexer (str : string) = object (self)
@@ -56,11 +72,13 @@ class lexer (str : string) = object (self)
 
   let tokenize_next () = pos_tracker#shiftr (); self#tokenize in
 
+  let tokenize_nline () = pos_tracker#new_line (); self#tokenize in
+
   (*This tokenizes numbers, it is initiated when the lexer finds a num*)
   let rec tokenize_num (chars : char list) =
     pos_tracker#shiftr ();
     if pos_tracker#at_eof () |> not then begin
-      let char = txt.[pos_tracker#current_pos] in
+      let char = txt.[pos_tracker#current_off] in
       match char with
       | 'a' .. 'z' | 'A' .. 'Z' ->  
           Lexing_error "Can't end number with letter, add a space or something" |> raise;
@@ -76,7 +94,7 @@ class lexer (str : string) = object (self)
   let rec tokenize_word (chars : char list) : Tokens.t = 
     pos_tracker#shiftr ();
     if pos_tracker#at_eof () |> not then begin
-      let char = txt.[pos_tracker#current_pos] in
+      let char = txt.[pos_tracker#current_off] in
       match char with
       | 'a' .. 'z' | 'A' .. 'Z' | '0' .. '9' | '_' -> chars @ [char] |> tokenize_word
       | _ -> pos_tracker#shiftl (); let token = chars |> string_of_chars |> string_to_tok in token end
@@ -87,7 +105,7 @@ class lexer (str : string) = object (self)
   let rec skip_comment () : unit = 
     pos_tracker#shiftr ();
     if pos_tracker#at_eof () |> not then begin
-      let char = txt.[pos_tracker#current_pos] in
+      let char = txt.[pos_tracker#current_off] in
       match char with
       | '\\' -> ()
       | _ -> skip_comment ()
@@ -97,9 +115,10 @@ class lexer (str : string) = object (self)
 
   if pos_tracker#at_eof () |> not then begin
     try
-      let char = txt.[pos_tracker#current_pos] in
+      let char = txt.[pos_tracker#current_off] in
       match char with
-      | ' ' | '\t' | '\n' | '\r' -> tokenize_next ()
+      | ' ' | '\t' | '\r' -> tokenize_next () 
+      | '\n' -> tokenize_nline ()
       | '\\' -> skip_comment (); tokenize_next ()
       | _ -> let token = match char with
                          | 'a' .. 'z' | 'A' .. 'Z' ->  tokenize_word [char]
@@ -126,7 +145,9 @@ class lexer (str : string) = object (self)
                                   tokenize_next ()
     with 
     | Lexing_error err -> print_tokens tokens;
-        printf "\n\n\nPrinted Retrieved Tokens\n\nLEXING ERROR: %s\nat offset: %i\n" err pos_tracker#current_pos; 
+let str = sprintf "\n\n\nPrinted Retrieved Tokens\n\nLEXING ERROR: %s\nat line: %i offset: %i\n"
+err pos_tracker#current_line pos_tracker#current_bol_off in
+      print_string str;
     | err -> 
         Printexc.to_string err |> printf "ANOMALY: %s\n"; end
   else
