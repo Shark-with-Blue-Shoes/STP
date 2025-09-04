@@ -1,6 +1,14 @@
-exception Lexing_error of string;;
+
+type position = {
+	mutable line_num : int; (*The line number*)
+	mutable bol_off : int; (*The offset between the cursor and the start of the line*)
+	mutable offset : int; (*The offset between the cursor and the start of the file*)
+};;
+
+exception Lexing_error of string * Tokens.t list * position;;
 
 open Tokens
+open Printf
 
 let string_of_chars chars = 
   let buf = Buffer.create 16 in
@@ -21,12 +29,6 @@ let string_to_tok str : Tokens.t =
   | "nat" -> NAT
   | "definition" -> DEFINITION
   | _ -> Var str;;
-
-type position = {
-	mutable line_num : int; (*The line number*)
-	mutable bol_off : int; (*The offset between the cursor and the start of the line*)
-	mutable offset : int; (*The offset between the cursor and the start of the file*)
-};;
 
 class position_tracker txt =
   object (self)
@@ -53,6 +55,8 @@ class position_tracker txt =
     method current_line = pos.line_num
     method current_bol_off = pos.bol_off
 
+    method position = pos
+
     method at_eof () : bool = pos.offset >= String.length txt
   end
 
@@ -61,7 +65,7 @@ class lexer (str : string) = object (self)
   val txt : string = str
  
   val pos_tracker = new position_tracker str 
-  
+
 (*Tokenizes txt*)
 method tokenize (tokens : Tokens.t list) : Tokens.t list =
 
@@ -76,7 +80,7 @@ method tokenize (tokens : Tokens.t list) : Tokens.t list =
       let char = txt.[pos_tracker#current_off] in
       match char with
       | 'a' .. 'z' | 'A' .. 'Z' ->  
-          Lexing_error "Can't end number with letter, add a space or something" |> raise;
+          Lexing_error ("Can't end number with letter, add a space or something", tokens, pos_tracker#position) |> raise;
       | '0' .. '9' -> chars @ [char] |> tokenize_num 
       | _ -> pos_tracker#shiftl ();
             let final_num = chars |> string_of_chars |> int_of_string in
@@ -106,36 +110,36 @@ method tokenize (tokens : Tokens.t list) : Tokens.t list =
       | _ -> skip_comment ()
     end
     else 
-    Lexing_error "Forgot to close comment" |> raise in
+    Lexing_error ("Forgot to close comment", tokens, pos_tracker#position) |> raise in
 
   if pos_tracker#at_eof () |> not then begin
-      let char = txt.[pos_tracker#current_off] in
-      match char with
-      | ' ' | '\t' | '\r' -> tokenize_next tokens
-      | '\n' -> tokenize_nline tokens
-      | '\\' -> skip_comment (); tokenize_next tokens
-      | _ -> let token = match char with
-                         | 'a' .. 'z' | 'A' .. 'Z' ->  tokenize_word [char]
-                         | '0' .. '9' -> tokenize_num [char]
-                         | '+' -> PLUS
-                         | '/' -> DIV
-                         | '*' -> MULT
-                         | '-' -> SUB 
-                         | '=' -> EQ
-                         | '(' -> LPAREN
-                         | ')' -> RPAREN
-                         | '{' -> LBRACE
-                         | '}' -> RBRACE
-                         | '[' -> LBRACK
-                         | ']' -> RBRACK
-                         | ';' -> SEMICOLON
-                         | ':' -> COLON
-                         | '&' -> AND
-                         | '|' -> OR
-                         | ',' -> COMMA
-                         | '.' -> PERIOD
-                         | _ -> Lexing_error "Does not match any known char" |> raise in
-                                  tokenize_next (tokens @ [token]) end
+    let char = txt.[pos_tracker#current_off] in
+    match char with
+    | ' ' | '\t' | '\r' -> tokenize_next tokens
+    | '\n' -> tokenize_nline tokens
+    | '\\' -> skip_comment (); tokenize_next tokens
+    | _ -> let token = match char with
+                       | 'a' .. 'z' | 'A' .. 'Z' ->  tokenize_word [char]
+                       | '0' .. '9' -> tokenize_num [char]
+                       | '+' -> PLUS
+                       | '/' -> DIV
+                       | '*' -> MULT
+                       | '-' -> SUB 
+                       | '=' -> EQ
+                       | '(' -> LPAREN
+                       | ')' -> RPAREN
+                       | '{' -> LBRACE
+                       | '}' -> RBRACE
+                       | '[' -> LBRACK
+                       | ']' -> RBRACK
+                       | ';' -> SEMICOLON
+                       | ':' -> COLON
+                       | '&' -> AND
+                       | '|' -> OR
+                       | ',' -> COMMA
+                       | '.' -> PERIOD
+                       | t -> Lexing_error (sprintf "%c does not match any known char" t, tokens, pos_tracker#position) |> raise in
+                                tokenize_next (tokens @ [token]) end
   else
     tokens @ [EOF]
 end
