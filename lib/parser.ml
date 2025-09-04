@@ -1,7 +1,17 @@
 exception Parsing_error of string;;
 
+type peano = 
+  | O
+  | S of peano;;
+
+let rec num_to_peano (num : int) : peano = 
+  if num = 0 |> not then 
+    S (num_to_peano (num-1))
+  else
+    O;;
+
 type expr = 
-  | Num of int
+  | Peano of peano
   | Binop of op * expr * expr
 
 and op = 
@@ -24,7 +34,7 @@ let parse_expr (tokens : Tokens.t list) : expr =
 
   let rec parse_binop (start : expr) (tokens : Tokens.t list) : expr =
     match tokens with
-    | op :: Tokens.Num y :: ls -> parse_binop (Binop ((parse_op op), start, (Num y))) ls
+    | op :: Tokens.Num y :: ls -> parse_binop (Binop ((parse_op op), start, (Peano (num_to_peano y)))) ls
     | [EOF] -> start
     | _ -> Parsing_error "Anomalous binop" |> raise
     in
@@ -32,6 +42,6 @@ let parse_expr (tokens : Tokens.t list) : expr =
   match tokens with
   | [] -> Parsing_error "Where the helly are the tokens" |> raise
   | hd :: tl -> (match hd with
-                | Tokens.Num x -> let n1 = Num x in parse_binop n1 tl
+                | Tokens.Num x -> let n1 = Peano (num_to_peano x) in parse_binop n1 tl
                 | _ -> Parsing_error "Anomalous op" |> raise);;
 
