@@ -32,10 +32,10 @@ let parse_op (token : Tokens.t) : op =
 
 let parse_expr (tokens : Tokens.t list) : expr = 
 
-  let rec parse_binop (start : expr) (tokens : Tokens.t list) : expr =
+  let rec parse_binop (curr_expr : expr) (tokens : Tokens.t list) : expr =
     match tokens with
-    | op :: Tokens.Num y :: ls -> parse_binop (Binop ((parse_op op), start, (Peano (num_to_peano y)))) ls
-    | [EOF] -> start
+    | op :: Tokens.Num y :: ls -> parse_binop (Binop ((parse_op op), curr_expr, (Peano (num_to_peano y)))) ls
+    | [EOF] -> curr_expr
     | _ -> Parsing_error "Anomalous binop" |> raise
     in
 
