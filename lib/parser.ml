@@ -19,16 +19,19 @@ let parse_op (token : Tokens.t) : op =
     | SUB -> Sub
     | _ -> Parsing_error "Wrong op!" |> raise;;
 
+
 let parse_expr (tokens : Tokens.t list) : expr = 
-  let rec expr_loop (start : expr) (tokens : Tokens.t list) : expr =
+
+  let rec parse_binop (start : expr) (tokens : Tokens.t list) : expr =
     match tokens with
-    | op :: Tokens.Num y :: ls -> expr_loop (Binop ((parse_op op), start, (Num y))) ls
+    | op :: Tokens.Num y :: ls -> parse_binop (Binop ((parse_op op), start, (Num y))) ls
     | [EOF] -> start
     | _ -> Parsing_error "Anomalous binop" |> raise
     in
+
   match tokens with
   | [] -> Parsing_error "Where the helly are the tokens" |> raise
   | hd :: tl -> (match hd with
-                | Tokens.Num x -> let n1 = Num x in expr_loop n1 tl
+                | Tokens.Num x -> let n1 = Num x in parse_binop n1 tl
                 | _ -> Parsing_error "Anomalous op" |> raise);;
 
