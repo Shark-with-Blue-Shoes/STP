@@ -40,11 +40,11 @@ let format_tok (tok : Tokens.t) =
 let format_pos (p: position) = 
   sprintf "line num: %d, offset: %d" p.line_num p.bol_off;;
 
-
 let rec print_tokens toks : unit =
   let print_token (tok : token) : unit = 
-    let tokstr = format_tok tok.t in
-    let postr = format_pos tok.pos in
+    let (t, pos) = tok in
+    let tokstr = format_tok t in
+    let postr = format_pos pos in
     printf "%s, %s\n" tokstr postr;
 in
 match toks with

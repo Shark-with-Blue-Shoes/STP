@@ -16,8 +16,8 @@ let run_assistant str =
       print_string "Printing retrieved tokens...\n\n";
       print_tokens toks;
   | Parsing_error (err, tok) -> 
-      let pos = tok.pos in
-      let tokstr = format_tok tok.t in
+      let (tok, pos) = tok in
+      let tokstr = format_tok tok in
       printf "PARSING ERROR: %s at token %s line %d, offset %d\n" err tokstr pos.line_num pos.bol_off;
   | e -> Printexc.to_string e |> printf "ANOMALY: %s\n";;
 

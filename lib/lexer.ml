@@ -17,10 +17,7 @@ let curs_to_pos (curs : cursor) : position =
 let pos_to_curs (pos : position) : cursor = 
   {line_num = pos.line_num; bol_off = pos.bol_off; offset = pos.offset};;
 
-type token = {
-  t: Tokens.t;
-  pos: position
-};;
+type token =  (Tokens.t * position);;
 
 exception Lexing_error of string * token list * cursor;;
 
@@ -157,11 +154,11 @@ method tokenize (tokens : token list) : token list =
                        | ',' -> COMMA
                        | '.' -> PERIOD
                        | t -> Lexing_error (sprintf "%c does not match any known char" t, tokens, cursor#get_curs) |> raise in
-                            let token = {t; pos} in
+                            let token = (t, pos) in
                             tokenize_next (tokens @ [token]) end
   else
     let pos = cursor#get_curs |> curs_to_pos in
-    let token = {t = EOF; pos} in
+    let token = (EOF, pos) in
     tokens @ [token]
 end
 
