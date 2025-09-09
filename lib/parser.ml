@@ -2,9 +2,6 @@ open Lexer
 
 exception Parsing_error of string * token;;
 
-(*For the really weird situations*)
-exception Anomalous_error of string;;
-
 type peano = 
   | O
   | S of peano;;
@@ -32,7 +29,7 @@ let parse_op (token : token) : op =
     | DIV -> Div
     | PLUS -> Add
     | SUB -> Sub
-    | EOF -> Parsing_error ("Ended abruptly", token) |> raise
+    | EOF -> Lexing_error ("EOF token in the middle of token list -> notify maintainers of problem", [token], pos_to_curs token.pos) |> raise
     | _ -> Parsing_error ("Wrong op!", token) |> raise;;
 
 let def_pos : position = { line_num = 0; bol_off = 0; offset = 0};;
@@ -44,11 +41,11 @@ let parse_expr (tokens : Lexer.token list) : expr =
     | op :: {t = Tokens.Num y; _} :: ls -> 
         ls |> parse_binop (Binop ((parse_op op), curr_expr, (Peano (num_to_peano y))))
     | [{t = Tokens.EOF; _}] -> curr_expr
-    | [] -> Anomalous_error "Where the helly is EOF?" |> raise
+    | [] -> Lexing_error ("No tokens to parse in binop -> notify maintainers of problem", [], pos_to_curs def_pos) |> raise
     | tok -> Parsing_error ("Malformed binop", List.hd tok) |> raise
     in
 
   match tokens with
   | {t = Tokens.Num y; _} :: ls -> let n1 = Peano (num_to_peano y) in parse_binop n1 ls
-  | [] -> Anomalous_error "Where the helly are the tokens" |> raise
+  | [] -> Lexing_error ("No tokens to parse in expression -> notify maintainers of problem", [], pos_to_curs def_pos) |> raise
   | tok -> Parsing_error ("Binary operation must start with a number", List.hd tok) |> raise;;

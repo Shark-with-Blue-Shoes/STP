@@ -19,8 +19,6 @@ let run_assistant str =
       let pos = tok.pos in
       let tokstr = format_tok tok.t in
       printf "PARSING ERROR: %s at token %s line %d, offset %d\n" err tokstr pos.line_num pos.bol_off;
-  | Anomalous_error s -> 
-      printf "ANOMALY IN LEXING: %s" s;
   | e -> Printexc.to_string e |> printf "ANOMALY: %s\n";;
 
 

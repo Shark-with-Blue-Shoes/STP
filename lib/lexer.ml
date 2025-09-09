@@ -14,6 +14,9 @@ type position = {
 let curs_to_pos (curs : cursor) : position = 
   {line_num = curs.line_num; bol_off = curs.bol_off; offset = curs.offset};;
 
+let pos_to_curs (pos : position) : cursor = 
+  {line_num = pos.line_num; bol_off = pos.bol_off; offset = pos.offset};;
+
 type token = {
   t: Tokens.t;
   pos: position
