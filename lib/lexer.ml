@@ -5,7 +5,17 @@ type position = {
 	mutable offset : int; (*The offset between the cursor and the start of the file*)
 };;
 
-exception Lexing_error of string * Tokens.t list * position;;
+type lexed = {
+  token: Tokens.t;
+  pos: position
+}
+
+let rec lexedls_to_toksls lexedls =
+  match lexedls with
+  | hd :: ls -> hd.token :: lexedls_to_toksls ls
+  | [] -> [];;
+
+exception Lexing_error of string * lexed list * position;;
 
 open Tokens
 open Printf
@@ -55,7 +65,7 @@ class position_tracker txt =
     method current_line = pos.line_num
     method current_bol_off = pos.bol_off
 
-    method position = pos
+    method get_pos = pos
 
     method at_eof () : bool = pos.offset >= String.length txt
   end
@@ -67,7 +77,7 @@ class lexer (str : string) = object (self)
   val pos_tracker = new position_tracker str 
 
 (*Tokenizes txt*)
-method tokenize (tokens : Tokens.t list) : Tokens.t list =
+method tokenize (tokens : lexed list) : lexed list =
 
   let tokenize_next toks = pos_tracker#shiftr (); self#tokenize toks in
 
@@ -80,7 +90,7 @@ method tokenize (tokens : Tokens.t list) : Tokens.t list =
       let char = txt.[pos_tracker#current_off] in
       match char with
       | 'a' .. 'z' | 'A' .. 'Z' ->  
-          Lexing_error ("Can't end number with letter, add a space or something", tokens, pos_tracker#position) |> raise;
+          Lexing_error ("Can't end number with letter, add a space or something", tokens, pos_tracker#get_pos) |> raise;
       | '0' .. '9' -> chars @ [char] |> tokenize_num 
       | _ -> pos_tracker#shiftl ();
             let final_num = chars |> string_of_chars |> int_of_string in
@@ -110,7 +120,7 @@ method tokenize (tokens : Tokens.t list) : Tokens.t list =
       | _ -> skip_comment ()
     end
     else 
-    Lexing_error ("Forgot to close comment", tokens, pos_tracker#position) |> raise in
+    Lexing_error ("Forgot to close comment", tokens, pos_tracker#get_pos) |> raise in
 
   if pos_tracker#at_eof () |> not then begin
     let char = txt.[pos_tracker#current_off] in
@@ -118,7 +128,8 @@ method tokenize (tokens : Tokens.t list) : Tokens.t list =
     | ' ' | '\t' | '\r' -> tokenize_next tokens
     | '\n' -> tokenize_nline tokens
     | '\\' -> skip_comment (); tokenize_next tokens
-    | _ -> let token = match char with
+    | _ -> let p = pos_tracker#get_pos in
+           let t = match char with
                        | 'a' .. 'z' | 'A' .. 'Z' ->  tokenize_word [char]
                        | '0' .. '9' -> tokenize_num [char]
                        | '+' -> PLUS
@@ -138,9 +149,12 @@ method tokenize (tokens : Tokens.t list) : Tokens.t list =
                        | '|' -> OR
                        | ',' -> COMMA
                        | '.' -> PERIOD
-                       | t -> Lexing_error (sprintf "%c does not match any known char" t, tokens, pos_tracker#position) |> raise in
-                                tokenize_next (tokens @ [token]) end
+                       | t -> Lexing_error (sprintf "%c does not match any known char" t, tokens, pos_tracker#get_pos) |> raise in
+                            let token : lexed = {token = t; pos = p} in
+                            tokenize_next (tokens @ [token]) end
   else
-    tokens @ [EOF]
+    let p = pos_tracker#get_pos in
+    let token : lexed = {token = EOF; pos = p} in
+    tokens @ [token]
 end
 

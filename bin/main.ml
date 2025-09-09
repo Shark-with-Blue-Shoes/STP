@@ -12,9 +12,12 @@ let run_assistant str =
           print_expr ast;
   with 
   | Lexing_error (err, toks, pos) -> 
+      let lexs = lexedls_to_toksls toks in
       printf "LEXING ERROR at line %d, offset %d: %s\n\n\n" pos.line_num pos.bol_off err;
       print_string "Printing retrieved tokens...\n\n";
-      print_tokens toks;
+      print_tokens lexs;
+  | Parsing_error (err, pos) -> 
+      printf "PARSING ERROR: %s at line %d, offset %d\n" err pos.line_num pos.bol_off;
   | e -> Printexc.to_string e |> printf "ANOMALY: %s\n";;
 
 
