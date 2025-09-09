@@ -29,17 +29,4 @@ let rec repl () =
   | _ -> run_assistant txt;
       repl ();;
 
-let read_file file : string = In_channel.with_open_bin file In_channel.input_all;;
-
-let interp file = 
-  print_string "interpreting file...\n";
-  let str = read_file file in
-  run_assistant str;; 
-
-let () =
-  try
-    match Sys.argv.(1) with 
-    | "repl" -> repl ()
-    | str -> interp str
-  with 
-  | Invalid_argument _ -> printf "put a damn argument!"
+let () = repl ();;

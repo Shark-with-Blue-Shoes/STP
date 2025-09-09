@@ -1,8 +1,0 @@
-lemma add_comm : forall y x, x + y= y+x.
-12-3
-
-definition skibidi : nat = 1+1.
-
-\whatever you think\
-
-|&
