@@ -7,10 +7,9 @@ type peano =
   | S of peano;;
 
 let rec num_to_peano (num : int) : peano = 
-  if num = 0 |> not then 
-    S (num_to_peano (num-1))
-  else
-    O;;
+  match num with
+  | 0 -> O
+  | _ -> S (num_to_peano (num-1));;
 
 type expr = 
   | Peano of peano
