@@ -1,21 +1,27 @@
 
-type position = {
+type cursor = {
 	mutable line_num : int; (*The line number*)
 	mutable bol_off : int; (*The offset between the cursor and the start of the line*)
 	mutable offset : int; (*The offset between the cursor and the start of the file*)
 };;
 
+type position = {
+  line_num : int;
+  bol_off : int; 
+  offset : int; 
+};;
+
 type token = {
   t: Tokens.t;
   pos: position
-}
+};;
 
 let rec lexedls_to_toksls lexedls =
   match lexedls with
   | hd :: ls -> hd.t :: lexedls_to_toksls ls
   | [] -> [];;
 
-exception Lexing_error of string * token list * position;;
+exception Lexing_error of string * token list * cursor;;
 
 open Tokens
 open Printf
@@ -40,10 +46,10 @@ let string_to_tok str : Tokens.t =
   | "definition" -> DEFINITION
   | _ -> Var str;;
 
-class position_tracker txt =
+class cursor_tracker txt =
   object (self)
     
-    val pos : position = {line_num = 1; bol_off = 0; offset = 0}
+    val pos : cursor = {line_num = 1; bol_off = 0; offset = 0}
     
     method shiftr () =
       pos.offset <- pos.offset + 1;
@@ -74,7 +80,7 @@ class lexer (str : string) = object (self)
   (*The string being lexed*)
   val txt : string = str
  
-  val pos_tracker = new position_tracker str 
+  val pos_tracker = new cursor_tracker str 
 
 (*Tokenizes txt*)
 method tokenize (tokens : token list) : token list =
@@ -128,7 +134,8 @@ method tokenize (tokens : token list) : token list =
     | ' ' | '\t' | '\r' -> tokenize_next tokens
     | '\n' -> tokenize_nline tokens
     | '\\' -> skip_comment (); tokenize_next tokens
-    | _ -> let p = pos_tracker#get_pos in
+    | _ -> let curs = pos_tracker#get_pos in
+           let p : position = {line_num = curs.line_num; bol_off = curs.bol_off; offset = curs.offset} in
            let t = match char with
                        | 'a' .. 'z' | 'A' .. 'Z' ->  tokenize_word [char]
                        | '0' .. '9' -> tokenize_num [char]
@@ -153,7 +160,8 @@ method tokenize (tokens : token list) : token list =
                             let token = {t = t; pos = p} in
                             tokenize_next (tokens @ [token]) end
   else
-    let p = pos_tracker#get_pos in
+    let curs = pos_tracker#get_pos in
+    let p : position = {line_num = curs.line_num; bol_off = curs.bol_off; offset = curs.offset} in
     let token = {t = EOF; pos = p} in
     tokens @ [token]
 end

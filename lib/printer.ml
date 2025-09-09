@@ -3,9 +3,11 @@ open Tokens
 open Parser
 
 let rec print_tokens toks : unit =
-  let print_token (tok : Tokens.t) : unit = 
-    let str = 
-    match tok with
+  let format_pos (p: Lexer.position) = 
+    sprintf "line num: %d, offset: %d" p.line_num p.bol_off in
+  let print_token (tok : Lexer.token) : unit = 
+    let tokstr = 
+    match tok.t with
     | Num i -> sprintf "NUM(%i)" i
     | Var s -> sprintf "VAR(%s)" s
     | MULT -> "MULT"
@@ -35,7 +37,9 @@ let rec print_tokens toks : unit =
     | PERIOD -> "PERIOD"
     | DEFINITION -> "DEFINITION"
     | NAT -> "NAT"
-    | EOF -> "EOF" in printf "%s\n" str;
+    | EOF -> "EOF" in 
+    let postr = format_pos tok.pos in
+    printf "%s, %s\n" tokstr postr;
 in
 match toks with
 | [] -> ()
