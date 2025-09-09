@@ -27,5 +27,6 @@ type t =
   | LEMMA
   | FORALL
   | DEFINITION
+  | EXISTS
   | NAT
   | EOF

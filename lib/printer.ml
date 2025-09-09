@@ -33,6 +33,7 @@ let format_tok (tok : Tokens.t) =
   | COMMA -> "COMMA"
   | PERIOD -> "PERIOD"
   | DEFINITION -> "DEFINITION"
+  | EXISTS -> "EXISTS"
   | NAT -> "NAT"
   | EOF -> "EOF";;
 

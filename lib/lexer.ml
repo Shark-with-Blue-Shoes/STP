@@ -42,6 +42,7 @@ let string_to_tok str : Tokens.t =
   | "forall" -> FORALL
   | "nat" -> NAT
   | "definition" -> DEFINITION
+  | "exists" -> EXISTS
   | _ -> Var str;;
 
 class cursor_tracker txt =
