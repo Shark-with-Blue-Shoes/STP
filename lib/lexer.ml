@@ -5,17 +5,17 @@ type position = {
 	mutable offset : int; (*The offset between the cursor and the start of the file*)
 };;
 
-type lexed = {
-  token: Tokens.t;
+type token = {
+  t: Tokens.t;
   pos: position
 }
 
 let rec lexedls_to_toksls lexedls =
   match lexedls with
-  | hd :: ls -> hd.token :: lexedls_to_toksls ls
+  | hd :: ls -> hd.t :: lexedls_to_toksls ls
   | [] -> [];;
 
-exception Lexing_error of string * lexed list * position;;
+exception Lexing_error of string * token list * position;;
 
 open Tokens
 open Printf
@@ -77,7 +77,7 @@ class lexer (str : string) = object (self)
   val pos_tracker = new position_tracker str 
 
 (*Tokenizes txt*)
-method tokenize (tokens : lexed list) : lexed list =
+method tokenize (tokens : token list) : token list =
 
   let tokenize_next toks = pos_tracker#shiftr (); self#tokenize toks in
 
@@ -150,11 +150,11 @@ method tokenize (tokens : lexed list) : lexed list =
                        | ',' -> COMMA
                        | '.' -> PERIOD
                        | t -> Lexing_error (sprintf "%c does not match any known char" t, tokens, pos_tracker#get_pos) |> raise in
-                            let token : lexed = {token = t; pos = p} in
+                            let token = {t = t; pos = p} in
                             tokenize_next (tokens @ [token]) end
   else
     let p = pos_tracker#get_pos in
-    let token : lexed = {token = EOF; pos = p} in
+    let token = {t = EOF; pos = p} in
     tokens @ [token]
 end
 
