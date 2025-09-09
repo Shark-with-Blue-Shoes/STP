@@ -1,11 +1,12 @@
 open Printf
 open Tokens
 open Parser
+open Lexer
 
 let rec print_tokens toks : unit =
-  let format_pos (p: Lexer.position) = 
+  let format_pos (p: position) = 
     sprintf "line num: %d, offset: %d" p.line_num p.bol_off in
-  let print_token (tok : Lexer.token) : unit = 
+  let print_token (tok : token) : unit = 
     let tokstr = 
     match tok.t with
     | Num i -> sprintf "NUM(%i)" i
