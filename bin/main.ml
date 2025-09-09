@@ -15,8 +15,12 @@ let run_assistant str =
       printf "LEXING ERROR at line %d, offset %d: %s\n\n\n" pos.line_num pos.bol_off err;
       print_string "Printing retrieved tokens...\n\n";
       print_tokens toks;
-  | Parsing_error (err, pos) -> 
-      printf "PARSING ERROR: %s at line %d, offset %d\n" err pos.line_num pos.bol_off;
+  | Parsing_error (err, tok) -> 
+      let pos = tok.pos in
+      let tokstr = format_tok tok.t in
+      printf "PARSING ERROR: %s at token %s line %d, offset %d\n" err tokstr pos.line_num pos.bol_off;
+  | Anomalous_error s -> 
+      printf "ANOMALY IN LEXING: %s" s;
   | e -> Printexc.to_string e |> printf "ANOMALY: %s\n";;
 
 

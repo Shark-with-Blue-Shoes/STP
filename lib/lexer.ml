@@ -19,11 +19,6 @@ type token = {
   pos: position
 };;
 
-let rec lexedls_to_toksls lexedls =
-  match lexedls with
-  | hd :: ls -> hd.t :: lexedls_to_toksls ls
-  | [] -> [];;
-
 exception Lexing_error of string * token list * cursor;;
 
 open Tokens
