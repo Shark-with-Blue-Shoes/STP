@@ -30,3 +30,11 @@ type t =
   | EXISTS
   | NAT
   | EOF
+  | REWRITE
+  | APPLY
+  | INDUCTION
+  | DESTRUCT
+  | SPLIT
+  | LEFT
+  | RIGHT
+  | REFLEXIVITY

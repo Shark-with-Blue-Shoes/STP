@@ -43,6 +43,14 @@ let string_to_tok str : Tokens.t =
   | "nat" -> NAT
   | "definition" -> DEFINITION
   | "exists" -> EXISTS
+  | "REWRITE" -> REWRITE
+  | "APPLY" -> APPLY
+  | "INDUCTION" -> INDUCTION
+  | "DESTRUCT" -> DESTRUCT
+  | "SPLIT" -> SPLIT
+  | "LEFT" -> LEFT
+  | "RIGHT" -> RIGHT
+  | "REFLEXIVITY" -> REFLEXIVITY
   | _ -> Var str;;
 
 class cursor_tracker txt =

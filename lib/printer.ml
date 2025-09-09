@@ -35,7 +35,15 @@ let format_tok (tok : Tokens.t) =
   | DEFINITION -> "DEFINITION"
   | EXISTS -> "EXISTS"
   | NAT -> "NAT"
-  | EOF -> "EOF";;
+  | EOF -> "EOF"
+  | REWRITE -> "REWRITE"
+  | APPLY -> "APPLY"
+  | INDUCTION -> "INDUCTION"
+  | DESTRUCT -> "DESTRUCT"
+  | SPLIT -> "SPLIT"
+  | LEFT -> "LEFT"
+  | RIGHT -> "RIGHT"
+  | REFLEXIVITY -> "REFLEXIVITY";;
 
 
 let format_pos (p: position) = 
