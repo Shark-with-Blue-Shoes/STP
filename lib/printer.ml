@@ -42,10 +42,9 @@ let format_pos (p: position) =
 
 let rec print_tokens toks : unit =
   let print_token (tok : token) : unit = 
-    let (t, pos) = tok in
+    let (t, _) = tok in
     let tokstr = format_tok t in
-    let postr = format_pos pos in
-    printf "%s, %s\n" tokstr postr;
+    printf "%s\n" tokstr;
 in
 match toks with
 | [] -> ()
