@@ -90,3 +90,26 @@ let format_comp comp =
 let print_comp (comp : comp) =
   let str = format_comp comp in
   printf "%s\n" str;;
+
+let format_bound_var var =
+  match var with
+  | Bound_Var str -> sprintf "Var(%s)" str;;
+
+let rec format_bound_vars vars = 
+  match vars with
+  | var :: ls -> (format_bound_vars ls) |> sprintf ", %s%s" (format_bound_var var)
+  | [] -> "";;
+
+let format_vars vars =
+  match vars with
+  | var :: ls -> format_bound_vars ls |> sprintf "%s%s" (format_bound_var var)
+  | _ -> ""
+
+let format_quantifier quant =
+  match quant with
+  | Existential ls -> format_vars ls |> sprintf "EXISTS(%s)" 
+  | Universal ls -> format_vars ls |> sprintf "FORALL(%s)";;
+
+let print_quantifier (quant : quantifier) =
+  let str = format_quantifier quant in
+  printf "%s\n" str;;

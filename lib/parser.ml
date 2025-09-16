@@ -22,7 +22,14 @@ and op =
   | Add
   | Sub
   | Mult
-  | Div;;
+  | Div
+
+and bound_var = 
+  | Bound_Var of string
+
+and quantifier = 
+  | Existential of bound_var list
+  | Universal of bound_var list;;
 
 let dummy_curs : cursor = { line_num = -1; bol_off = -1; offset = -1};;
 
@@ -69,3 +76,28 @@ let parse_comp (tokens : token list) : comp =
     |> List.partition_map (fun (i, x) -> if is_after_eq (Some i) tokens then Right x else Left x) 
     |> remove_tails in
       Eq (parse_expr expr1, parse_expr expr2);;
+
+let parse_var (token : token) : bound_var =
+  let (tok, _) = token in
+  match tok with
+  | Var x -> Bound_Var x
+  | _ -> Parsing_error ("Expecting a var", token) |> raise;;
+
+let rec parse_vars (tokens : token list) : bound_var list = 
+  match tokens with
+  | (Tokens.COMMA, _) :: _ -> []
+  | hd :: tl -> parse_var hd :: parse_vars tl
+  | _ -> Parsing_error ("Must always end the quantifier with a comma", (EOF, curs_to_pos dummy_curs)) |> raise;;
+
+let parse_bounds (tokens : token list) : bound_var list = 
+  match tokens with
+  | (Tokens.COMMA, _) :: _ -> Parsing_error ("Expecting some vars", (EOF, curs_to_pos dummy_curs)) |> raise
+  | (Tokens.Var _, _) :: _ -> parse_vars tokens
+  | hd :: _ -> Parsing_error ("What the helly, something else should be here!", hd) |> raise
+  | _ -> Parsing_error ("What the helly, nothing is here!", (EOF, curs_to_pos dummy_curs)) |> raise;;
+
+let parse_quantifier (tokens : token list) : quantifier =
+  match tokens with
+  | (Tokens.EXISTS, _) :: ls -> Existential (parse_bounds ls)
+  | (Tokens.FORALL, _) :: ls -> Universal (parse_bounds ls)
+  | _ -> Parsing_error ("Expecting a quantifier", (EOF, curs_to_pos dummy_curs)) |> raise
