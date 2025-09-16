@@ -31,7 +31,9 @@ and quantifier =
   | Existential of bound_var list
   | Universal of bound_var list;;
 
-let dummy_curs : cursor = { line_num = -1; bol_off = -1; offset = -1};;
+let dummy_pos : position = { line_num = -1; bol_off = -1; offset = -1};;
+
+let dummy_tok : token = (EOF, dummy_pos);;
 
 let parse_op (token : token) : op =
   let open Tokens in
@@ -41,7 +43,6 @@ let parse_op (token : token) : op =
     | DIV -> Div
     | PLUS -> Add
     | SUB -> Sub
-    | EOF -> Lexing_error ("EOF token in the middle of token list -> notify maintainers of problem", [token], dummy_curs) |> raise
     | _ -> Parsing_error ("Wrong op!", token) |> raise;;
 
 let rec parse_binop (curr_expr : expr) (tokens : token list) : expr =
@@ -52,10 +53,14 @@ let rec parse_binop (curr_expr : expr) (tokens : token list) : expr =
   | tok -> Parsing_error ("Malformed binop", List.hd tok) |> raise;;
  
 let parse_expr (tokens : token list) : expr = 
+  let parse_first_token tok toks = 
+    match tok with
+    | (Tokens.Num y, _) -> let n1 = Peano (num_to_peano y) in parse_binop n1 toks
+    | _ -> Parsing_error ("Binary operation must start with a number", tok) |> raise in
+
   match tokens with
-  | (Tokens.Num y, _) :: ls -> let n1 = Peano (num_to_peano y) in parse_binop n1 ls
-  | [] -> Parsing_error ("No tokens to parse in expression", (EQ, curs_to_pos dummy_curs)) |> raise
-  | tok -> Parsing_error ("Binary operation must start with a number", List.hd tok) |> raise;;
+  | hd :: toks -> parse_first_token hd toks
+  | [] -> Parsing_error ("Nothing here! Contact Maintainers", dummy_tok) |> raise;;
 
 let is_after_eq token_index tokens : bool =
   let eq_index = List.find_index (fun (t, _) -> t = Tokens.EQ) tokens in
@@ -87,17 +92,26 @@ let rec parse_vars (tokens : token list) : bound_var list =
   match tokens with
   | (Tokens.COMMA, _) :: _ -> []
   | hd :: tl -> parse_var hd :: parse_vars tl
-  | _ -> Parsing_error ("Must always end the quantifier with a comma", (EOF, curs_to_pos dummy_curs)) |> raise;;
+  | [] -> Parsing_error ("Nothing here! Contact maintainers", dummy_tok) |> raise;;
 
 let parse_bounds (tokens : token list) : bound_var list = 
+  let parse_first_token tok = 
+    match tok with
+    | (Tokens.Var _, _) -> parse_vars tokens 
+    | (Tokens.COMMA, _) -> Parsing_error ("Expecting some vars", tok) |> raise
+    | _ -> Parsing_error ("Comma or Var is not here", tok) |> raise in
+  
   match tokens with
-  | (Tokens.COMMA, _) :: _ -> Parsing_error ("Expecting some vars", (EOF, curs_to_pos dummy_curs)) |> raise
-  | (Tokens.Var _, _) :: _ -> parse_vars tokens
-  | hd :: _ -> Parsing_error ("What the helly, something else should be here!", hd) |> raise
-  | _ -> Parsing_error ("What the helly, nothing is here!", (EOF, curs_to_pos dummy_curs)) |> raise;;
+  | hd :: _ ->  parse_first_token hd 
+  | [] -> Parsing_error ("Nothing here! Contact maintainers", dummy_tok) |> raise;;
 
 let parse_quantifier (tokens : token list) : quantifier =
-  match tokens with
-  | (Tokens.EXISTS, _) :: ls -> Existential (parse_bounds ls)
-  | (Tokens.FORALL, _) :: ls -> Universal (parse_bounds ls)
-  | _ -> Parsing_error ("Expecting a quantifier", (EOF, curs_to_pos dummy_curs)) |> raise
+  let parse_first_token tok toks = 
+  match tok with
+  | (Tokens.EXISTS, _) -> Existential (parse_bounds toks)
+  | (Tokens.FORALL, _) -> Universal (parse_bounds toks)
+  | _ -> Parsing_error("Expecting Exists or Forall", tok) |> raise in
+
+  match tokens with 
+  | hd :: ls -> parse_first_token hd ls
+  | [] -> Parsing_error ("Nothing here!", dummy_tok) |> raise
