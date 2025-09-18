@@ -106,26 +106,24 @@ let parse_expr (tokens : token list) : expr =
 
   match tokens with
   | hd :: toks -> parse_first_token hd toks
-  | [] -> Parsing_error ("Nothing here! Contact Maintainers", dummy_tok) |> raise;;
+  | [] -> Parsing_error ("Expecting expression, got nothing!?", dummy_tok) |> raise;;
 
 let is_after_eq token_index tokens : bool =
   let eq_index = List.find_index (fun (t, _) -> t = EQ) tokens in
     token_index > eq_index;;
 
-let remove_tails (lst1, lst2) =
-  let rec remove_tail = function
-    | [] -> []
-    | [_] -> []
-    | x :: xs -> x :: remove_tail xs
-  in
-  (remove_tail lst1, remove_tail lst2)
+let remove_last (ls, expr2) = 
+  match (List.rev ls) with
+  | [] -> ([], expr2)
+  | [_] -> ([], expr2)
+  | _ :: tl -> (List.rev tl, expr2);;
 
 let parse_comp (tokens : token list) : comp = 
   let (expr1, expr2) =
     tokens
     |> List.mapi (fun i x -> (i, x))
     |> List.partition_map (fun (i, x) -> if is_after_eq (Some i) tokens then Right x else Left x) 
-    |> remove_tails in
+    |> remove_last in
       Eq (parse_expr expr1, parse_expr expr2);;
 
 let parse_var (token : token) : bound_var =
@@ -138,7 +136,7 @@ let rec parse_vars (tokens : token list) : bound_var list =
   match tokens with
   | (COMMA, _) :: _ -> []
   | hd :: tl -> parse_var hd :: parse_vars tl
-  | [] -> Parsing_error ("Nothing here! Contact maintainers", dummy_tok) |> raise;;
+  | [] -> Parsing_error ("Nothing here!", dummy_tok) |> raise;;
 
 let parse_bounds (tokens : token list) : bound_var list = 
   let parse_first_token tok = 
@@ -149,7 +147,7 @@ let parse_bounds (tokens : token list) : bound_var list =
   
   match tokens with
   | hd :: _ ->  parse_first_token hd 
-  | [] -> Parsing_error ("Nothing here! Contact maintainers", dummy_tok) |> raise;;
+  | [] -> Parsing_error ("Nothing here!", dummy_tok) |> raise;;
 
 let parse_quantifier (tokens : token list) : quantifier =
   let parse_first_token tok toks = 
@@ -184,3 +182,8 @@ let parse_lemma (tokens : token list) : lemma =
             Lemma (nm, parse_comp ls)
   | _ :: _ -> Parsing_error ("Too short to be a lemma", dummy_tok) |> raise
   | [] -> Parsing_error("You put nothing you loser", dummy_tok) |> raise;;
+
+let parse_valid (tokens : token list) : lemma =
+  match (List.rev tokens) with
+  | (PERIOD, _) :: ls -> List.rev ls |> parse_lemma
+  | _ -> Parsing_error("Must end command with PERIOD", dummy_tok) |> raise;;
