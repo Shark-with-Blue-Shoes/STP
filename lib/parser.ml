@@ -108,23 +108,25 @@ let parse_expr (tokens : token list) : expr =
   | hd :: toks -> parse_first_token hd toks
   | [] -> Parsing_error ("Expecting expression, got nothing!?", dummy_tok) |> raise;;
 
-let is_after_eq token_index tokens : bool =
-  let eq_index = List.find_index (fun (t, _) -> t = EQ) tokens in
-    token_index > eq_index;;
-
-let remove_last (ls, expr2) = 
-  match (List.rev ls) with
-  | [] -> ([], expr2)
-  | [_] -> ([], expr2)
-  | _ :: tl -> (List.rev tl, expr2);;
+let rec remove_at index list =
+  match list with
+  | [] -> []
+  | h :: t ->
+      if index = 0 then
+        t
+      else
+        h :: remove_at (index - 1) t;;
 
 let parse_comp (tokens : token list) : comp = 
-  let (expr1, expr2) =
-    tokens
-    |> List.mapi (fun i x -> (i, x))
-    |> List.partition_map (fun (i, x) -> if is_after_eq (Some i) tokens then Right x else Left x) 
-    |> remove_last in
-      Eq (parse_expr expr1, parse_expr expr2);;
+  let eq_index = List.find_index (fun (t, _) -> t = EQ) tokens in
+  match eq_index with
+  | None -> Parsing_error ("There should be a equal sign in the lemma!", dummy_tok) |> raise
+  | Some eq_i -> let (expr1, expr2) =
+                tokens
+                |> remove_at eq_i
+                |> List.mapi (fun i x -> (i, x))
+                |> List.partition_map (fun (i, x) -> if i >= eq_i then Right x else Left x) in
+                  Eq (parse_expr expr1, parse_expr expr2);;
 
 let parse_var (token : token) : bound_var =
   let (tok, _) = token in
