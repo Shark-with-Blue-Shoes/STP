@@ -35,7 +35,6 @@ let format_tok (tok : Tokens.t) =
   | DEFINITION -> "DEFINITION"
   | EXISTS -> "EXISTS"
   | NAT -> "NAT"
-  | EOF -> "EOF"
   | REWRITE -> "REWRITE"
   | APPLY -> "APPLY"
   | INDUCTION -> "INDUCTION"
@@ -52,8 +51,7 @@ let format_pos (p: position) =
 let rec print_tokens toks : unit =
   let print_token (tok : token) : unit = 
     let (t, _) = tok in
-    let tokstr = format_tok t in
-    printf "%s\n" tokstr;
+    format_tok t |> printf "%s\n";
 in
 match toks with
 | [] -> ()
@@ -70,7 +68,7 @@ let format_op op =
 
 let rec format_peano (p : peano) : string =
   match p with
-  | S p -> sprintf "S (%s)" (format_peano p)
+  | S p -> format_peano p |> sprintf "S (%s)" 
   | O -> "O";;
 
 let rec format_expr expr = 
@@ -80,16 +78,14 @@ let rec format_expr expr =
       sprintf "Binop(%s, %s, %s)" (format_op op) (format_expr expr1) (format_expr expr2);;
 
 let print_expr (expr : expr) =
-  let str = format_expr expr in
-  printf "%s\n" str;;
+   format_expr expr |> printf "%s\n";;
 
 let format_comp comp = 
   match comp with
   | Eq (expr1, expr2) -> sprintf "Eq(%s, %s)" (format_expr expr1) (format_expr expr2);;
 
 let print_comp (comp : comp) =
-  let str = format_comp comp in
-  printf "%s\n" str;;
+  format_comp comp |> printf "%s\n";;
 
 let format_bound_var var =
   match var with
@@ -111,5 +107,11 @@ let format_quantifier quant =
   | Universal ls -> format_vars ls |> sprintf "FORALL(%s)";;
 
 let print_quantifier (quant : quantifier) =
-  let str = format_quantifier quant in
-  printf "%s\n" str;;
+  format_quantifier quant |> printf "%s\n";;
+
+let format_lemma lemma = 
+  match lemma with
+  | Lemma (nm, comp) -> format_comp comp |> sprintf "LEMMA %s : %s" nm;;
+
+let print_lemma lemma = 
+  format_lemma lemma |> printf "%s\n";;

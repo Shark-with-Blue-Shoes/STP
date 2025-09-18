@@ -166,8 +166,6 @@ method tokenize (tokens : token list) : token list =
                             let token = (t, pos) in
                             tokenize_next (tokens @ [token]) end
   else
-    let pos = cursor#get_curs |> curs_to_pos in
-    let token = (EOF, pos) in
-    tokens @ [token]
+    tokens
 end
 

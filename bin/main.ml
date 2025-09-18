@@ -8,8 +8,8 @@ let run_assistant str =
   try
     let lex = new lexer str in
       let tokens = lex#tokenize [] in
-        let ast = parse_quantifier tokens in
-          print_quantifier ast;
+        let ast = parse_lemma tokens in
+          print_lemma ast;
   with 
   | Lexing_error (err, toks, pos) -> 
       printf "LEXING ERROR at line %d, offset %d: %s\n\n\n" pos.line_num pos.bol_off err;

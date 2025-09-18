@@ -29,7 +29,6 @@ type t =
   | DEFINITION
   | EXISTS
   | NAT
-  | EOF
   | REWRITE
   | APPLY
   | INDUCTION

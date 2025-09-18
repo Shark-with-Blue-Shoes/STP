@@ -31,13 +31,13 @@ and bound_var =
 and quantifier = 
   | Existential of bound_var list
   | Universal of bound_var list
-(*
+
 and lemma = 
-  | Lemma of string * comp*);;
+  | Lemma of string * comp;;
 
 let dummy_pos : position = { line_num = -1; bol_off = -1; offset = -1};;
 
-let dummy_tok : token = (EOF, dummy_pos);;
+let dummy_tok : token = (COMMA, dummy_pos);;
 
 let parse_op (token : token) : op =
   let (tok, _) = token in
@@ -119,6 +119,7 @@ let parse_quantifier (tokens : token list) : quantifier =
   | hd :: ls -> parse_first_token hd ls
   | [] -> Parsing_error ("Nothing here!", dummy_tok) |> raise
 
-(*let parse_lemma (tokens : token list) : lemma = 
+let parse_lemma (tokens : token list) : lemma = 
   match tokens with
-  | ()*)
+  | (LEMMA, _) :: (Var nm, _) :: (COLON, _) :: ls -> Lemma (nm, parse_comp ls)
+    | _ -> Parsing_error ("What the helly!", dummy_tok) |> raise;;
