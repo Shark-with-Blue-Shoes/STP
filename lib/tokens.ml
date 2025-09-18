@@ -37,3 +37,4 @@ type t =
   | LEFT
   | RIGHT
   | REFLEXIVITY
+  | PLACEHOLDER

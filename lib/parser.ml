@@ -1,5 +1,48 @@
 open Lexer
 open Tokens
+open Printf
+
+let format_tok (tok : Tokens.t) = 
+  match tok with
+  | Num i -> sprintf "NUM(%i)" i
+  | Var s -> sprintf "VAR(%s)" s
+  | MULT -> "MULT"
+  | DIV -> "DIV"
+  | PLUS -> "PLUS"
+  | SUB -> "SUB"
+  | EQ -> "EQ"
+  | LPAREN -> "LPAREN"
+  | RPAREN -> "RPAREN"
+  | LBRACE -> "LBRACE"
+  | RBRACE -> "RBRACE"
+  | LBRACK -> "LBRACK"
+  | RBRACK -> "RBRACK"
+  | SEMICOLON -> "SEMICOLON"
+  | COLON -> "COLON"
+  | AND -> "AND"
+  | OR -> "OR"
+  | MATCH -> "MATCH"
+  | WITH -> "WITH"
+  | IF -> "IF"
+  | ELSE -> "ELSE"
+  | TRUE -> "TRUE"
+  | FALSE -> "FALSE"
+  | LEMMA -> "LEMMA"
+  | FORALL -> "FORALL"
+  | COMMA -> "COMMA"
+  | PERIOD -> "PERIOD"
+  | DEFINITION -> "DEFINITION"
+  | EXISTS -> "EXISTS"
+  | NAT -> "NAT"
+  | REWRITE -> "REWRITE"
+  | APPLY -> "APPLY"
+  | INDUCTION -> "INDUCTION"
+  | DESTRUCT -> "DESTRUCT"
+  | SPLIT -> "SPLIT"
+  | LEFT -> "LEFT"
+  | RIGHT -> "RIGHT"
+  | REFLEXIVITY -> "REFLEXIVITY"
+  | PLACEHOLDER -> "PLACEHOLDER";;
 
 exception Parsing_error of string * token;;
 
@@ -37,7 +80,7 @@ and lemma =
 
 let dummy_pos : position = { line_num = -1; bol_off = -1; offset = -1};;
 
-let dummy_tok : token = (COMMA, dummy_pos);;
+let dummy_tok : token = (PLACEHOLDER, dummy_pos);;
 
 let parse_op (token : token) : op =
   let (tok, _) = token in
@@ -119,7 +162,25 @@ let parse_quantifier (tokens : token list) : quantifier =
   | hd :: ls -> parse_first_token hd ls
   | [] -> Parsing_error ("Nothing here!", dummy_tok) |> raise
 
-let parse_lemma (tokens : token list) : lemma = 
+let parse_token (tok : token) exp =
+  let (t, _) = tok in
+  if t = exp then 
+    ()
+  else 
+    let str = format_tok exp in 
+      Parsing_error (Printf.sprintf "expecting %s" str, tok) |> raise;;
+
+let parse_name tok =
+  match tok with
+  | (Var str, _) -> str
+  | _ -> Parsing_error ("Not a Var!", tok) |> raise;;
+
+let parse_lemma (tokens : token list) : lemma =  
   match tokens with
-  | (LEMMA, _) :: (Var nm, _) :: (COLON, _) :: ls -> Lemma (nm, parse_comp ls)
-    | _ -> Parsing_error ("What the helly!", dummy_tok) |> raise;;
+  | lemma :: nm :: cln :: ls -> 
+      let nm = parse_name nm in 
+        let _ = parse_token lemma LEMMA in
+          let _ = parse_token cln COLON in
+            Lemma (nm, parse_comp ls)
+  | _ :: _ -> Parsing_error ("Too short to be a lemma", dummy_tok) |> raise
+  | [] -> Parsing_error("You put nothing you loser", dummy_tok) |> raise;;

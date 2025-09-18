@@ -1,48 +1,6 @@
 open Printf
-open Tokens
 open Parser
 open Lexer
-
-let format_tok (tok : Tokens.t) = 
-  match tok with
-  | Num i -> sprintf "NUM(%i)" i
-  | Var s -> sprintf "VAR(%s)" s
-  | MULT -> "MULT"
-  | DIV -> "DIV"
-  | PLUS -> "PLUS"
-  | SUB -> "SUB"
-  | EQ -> "EQ"
-  | LPAREN -> "LPAREN"
-  | RPAREN -> "RPAREN"
-  | LBRACE -> "LBRACE"
-  | RBRACE -> "RBRACE"
-  | LBRACK -> "LBRACK"
-  | RBRACK -> "RBRACK"
-  | SEMICOLON -> "SEMICOLON"
-  | COLON -> "COLON"
-  | AND -> "AND"
-  | OR -> "OR"
-  | MATCH -> "MATCH"
-  | WITH -> "WITH"
-  | IF -> "IF"
-  | ELSE -> "ELSE"
-  | TRUE -> "TRUE"
-  | FALSE -> "FALSE"
-  | LEMMA -> "LEMMA"
-  | FORALL -> "FORALL"
-  | COMMA -> "COMMA"
-  | PERIOD -> "PERIOD"
-  | DEFINITION -> "DEFINITION"
-  | EXISTS -> "EXISTS"
-  | NAT -> "NAT"
-  | REWRITE -> "REWRITE"
-  | APPLY -> "APPLY"
-  | INDUCTION -> "INDUCTION"
-  | DESTRUCT -> "DESTRUCT"
-  | SPLIT -> "SPLIT"
-  | LEFT -> "LEFT"
-  | RIGHT -> "RIGHT"
-  | REFLEXIVITY -> "REFLEXIVITY";;
 
 
 let format_pos (p: position) = 
