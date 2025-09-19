@@ -188,3 +188,15 @@ let parse_input (tokens : token list) (parse : (token list -> 'a)) : 'a =
   match (List.rev tokens) with
   | (PERIOD, _) :: ls -> List.rev ls |> parse
   | _ -> Parsing_error("Must end command with PERIOD", dummy_tok) |> raise;;
+
+type tactic = 
+  | Reflexivity;;
+
+let parse_tactic (tokens : token list) : tactic = 
+  let parse_first_token token = 
+    match token with
+    | (REFLEXIVITY, _) -> Reflexivity
+    | _ -> Parsing_error ("Expected Tactic", token) |> raise in
+  match tokens with
+  | hd :: _ -> parse_first_token hd
+  | [] -> Parsing_error("Nothing?! I have Nothing!", dummy_tok) |> raise;;

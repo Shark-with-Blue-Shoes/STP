@@ -27,3 +27,7 @@ val print_quantifier : Parser.quantifier -> unit
 val format_lemma : Parser.lemma -> string
 
 val print_lemma : Parser.lemma -> unit
+
+val format_tactic : Parser.tactic -> string
+
+val print_tactic : Parser.tactic -> unit

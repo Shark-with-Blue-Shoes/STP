@@ -72,3 +72,10 @@ let format_lemma (nm, comp) =
 
 let print_lemma lemma = 
   format_lemma lemma |> printf "%s\n";;
+
+let format_tactic tac = 
+  match tac with
+  | Reflexivity -> "Reflexivity"
+
+let print_tactic tac = 
+  format_tactic tac |> printf "%s\n";;

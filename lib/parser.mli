@@ -47,3 +47,7 @@ val parse_name : Lexer.token -> string
 val parse_lemma : Lexer.token list -> lemma
 
 val parse_input : Lexer.token list -> (Lexer.token list -> 'a) -> 'a 
+
+type tactic = Reflexivity
+
+val parse_tactic : Lexer.token list -> tactic
