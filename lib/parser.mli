@@ -16,7 +16,7 @@ and bound_var = Bound_Var of string
 
 and quantifier = Existential of bound_var list | Universal of bound_var list
 
-and lemma = Lemma of string * comp
+and lemma = string * comp
 
 val dummy_pos : Lexer.position
 

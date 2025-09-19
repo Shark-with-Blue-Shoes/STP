@@ -67,9 +67,8 @@ let format_quantifier quant =
 let print_quantifier (quant : quantifier) =
   format_quantifier quant |> printf "%s\n";;
 
-let format_lemma lemma = 
-  match lemma with
-  | Lemma (nm, comp) -> format_comp comp |> sprintf "LEMMA %s : %s" nm;;
+let format_lemma (nm, comp) =  
+  format_comp comp |> sprintf "LEMMA (%s, %s)" nm;;
 
 let print_lemma lemma = 
   format_lemma lemma |> printf "%s\n";;

@@ -75,8 +75,7 @@ and quantifier =
   | Existential of bound_var list
   | Universal of bound_var list
 
-and lemma = 
-  | Lemma of string * comp;;
+and lemma = string * comp;; 
 
 let dummy_pos : position = { line_num = -1; bol_off = -1; offset = -1};;
 
@@ -181,7 +180,7 @@ let parse_lemma (tokens : token list) : lemma =
       let nm = parse_name nm in 
         let _ = parse_token lemma LEMMA in
           let _ = parse_token cln COLON in
-            Lemma (nm, parse_comp ls)
+            (nm, parse_comp ls)
   | _ :: _ -> Parsing_error ("Too short to be a lemma", dummy_tok) |> raise
   | [] -> Parsing_error("You put nothing you loser", dummy_tok) |> raise;;
 
