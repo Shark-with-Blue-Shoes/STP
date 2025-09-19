@@ -1,33 +1,27 @@
-val format_pos : Lexer.position -> string
+val fpos : Lexer.position -> string
+
+val print_token : Lexer.token -> unit
 
 val print_tokens : Lexer.token list -> unit
 
-val format_op : Parser.op -> string
+val fop : Parser.op -> string
 
-val format_peano : Parser.peano -> string
+val fpeano : Parser.peano -> string
 
-val format_expr : Parser.expr -> string
+val fexpr : Parser.expr -> string
 
-val print_expr : Parser.expr -> unit
+val fcomp : Parser.comp -> string
 
-val format_comp : Parser.comp -> string
+val fbound_var : Parser.bound_var -> string
 
-val print_comp : Parser.comp -> unit
+val fbound_vars : Parser.bound_var list -> string
 
-val format_bound_var : Parser.bound_var -> string
+val fvars : Parser.bound_var list -> string
 
-val format_bound_vars : Parser.bound_var list -> string
+val fquantifier : Parser.quantifier -> string
 
-val format_vars : Parser.bound_var list -> string
+val flemma : string * Parser.comp -> string
 
-val format_quantifier : Parser.quantifier -> string
+val ftactic : Parser.tactic -> string
 
-val print_quantifier : Parser.quantifier -> unit
-
-val format_lemma : Parser.lemma -> string
-
-val print_lemma : Parser.lemma -> unit
-
-val format_tactic : Parser.tactic -> string
-
-val print_tactic : Parser.tactic -> unit
+val print : 'a -> ('a -> string) -> unit

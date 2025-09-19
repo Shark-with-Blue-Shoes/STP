@@ -3,79 +3,66 @@ open Parser
 open Lexer
 
 
-let format_pos (p: position) = 
+let fpos (p: position) = 
   sprintf "line num: %d, offset: %d" p.line_num p.bol_off;;
 
+let print_token (t,_) : unit = 
+  format_tok t |> printf "%s\n";;
+
 let rec print_tokens toks : unit =
-  let print_token (tok : token) : unit = 
-    let (t, _) = tok in
-    format_tok t |> printf "%s\n";
-in
-match toks with
-| [] -> ()
-| hd :: tl ->
+  match toks with
+  | [] -> ()
+  | hd :: tl ->
     print_token hd;
     print_tokens tl;;
 
-let format_op op =
+let fop op =
   match op with
   | Add -> "+"
   | Sub -> "-"
   | Mult -> "*"
   | Div -> "//";;
 
-let rec format_peano (p : peano) : string =
+let rec fpeano (p : peano) : string =
   match p with
-  | S p -> format_peano p |> sprintf "S (%s)" 
+  | S p -> fpeano p |> sprintf "S (%s)" 
   | O -> "O";;
 
-let rec format_expr expr = 
+let rec fexpr expr = 
   match expr with 
-  | Peano n -> format_peano n |> sprintf "Peano(%s)"
+  | Peano n -> fpeano n |> sprintf "Peano(%s)"
   | Binop (op, expr1, expr2) -> 
-      sprintf "Binop(%s, %s, %s)" (format_op op) (format_expr expr1) (format_expr expr2);;
+      sprintf "Binop(%s, %s, %s)" (fop op) (fexpr expr1) (fexpr expr2);;
 
-let print_expr (expr : expr) =
-   format_expr expr |> printf "%s\n";;
-
-let format_comp comp = 
+let fcomp comp = 
   match comp with
-  | Eq (expr1, expr2) -> sprintf "Eq(%s, %s)" (format_expr expr1) (format_expr expr2);;
+  | Eq (expr1, expr2) -> sprintf "Eq(%s, %s)" (fexpr expr1) (fexpr expr2);;
 
-let print_comp (comp : comp) =
-  format_comp comp |> printf "%s\n";;
-
-let format_bound_var var =
+let fbound_var var =
   match var with
   | Bound_Var str -> sprintf "Var(%s)" str;;
 
-let rec format_bound_vars vars = 
+let rec fbound_vars vars = 
   match vars with
-  | var :: ls -> (format_bound_vars ls) |> sprintf ", %s%s" (format_bound_var var)
+  | var :: ls -> (fbound_vars ls) |> sprintf ", %s%s" (fbound_var var)
   | [] -> "";;
 
-let format_vars vars =
+let fvars vars =
   match vars with
-  | var :: ls -> format_bound_vars ls |> sprintf "%s%s" (format_bound_var var)
+  | var :: ls -> fbound_vars ls |> sprintf "%s%s" (fbound_var var)
   | _ -> ""
 
-let format_quantifier quant =
+let fquantifier quant =
   match quant with
-  | Existential ls -> format_vars ls |> sprintf "EXISTS(%s)" 
-  | Universal ls -> format_vars ls |> sprintf "FORALL(%s)";;
+  | Existential ls -> fvars ls |> sprintf "EXISTS(%s)" 
+  | Universal ls -> fvars ls |> sprintf "FORALL(%s)";;
 
-let print_quantifier (quant : quantifier) =
-  format_quantifier quant |> printf "%s\n";;
+let flemma (nm, comp) =  
+  fcomp comp |> sprintf "LEMMA (%s, %s)" nm;;
 
-let format_lemma (nm, comp) =  
-  format_comp comp |> sprintf "LEMMA (%s, %s)" nm;;
-
-let print_lemma lemma = 
-  format_lemma lemma |> printf "%s\n";;
-
-let format_tactic tac = 
+let ftactic tac = 
   match tac with
   | Reflexivity -> "Reflexivity"
 
-let print_tactic tac = 
-  format_tactic tac |> printf "%s\n";;
+let print (node : 'a) (format : 'a -> string) = 
+  format node |> printf "%s\n";;
