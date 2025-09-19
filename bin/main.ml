@@ -8,7 +8,7 @@ let run_assistant str =
   try
     let lex = new lexer str in
       let tokens = lex#tokenize [] in
-        let ast = parse_input tokens in
+        let ast = parse_input tokens parse_lemma in
           print_lemma ast;
   with 
   | Lexing_error (err, toks, pos) -> 

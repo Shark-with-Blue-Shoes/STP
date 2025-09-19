@@ -184,7 +184,7 @@ let parse_lemma (tokens : token list) : lemma =
   | _ :: _ -> Parsing_error ("Too short to be a lemma", dummy_tok) |> raise
   | [] -> Parsing_error("You put nothing you loser", dummy_tok) |> raise;;
 
-let parse_input (tokens : token list) : lemma =
+let parse_input (tokens : token list) (parse : (token list -> 'a)) : 'a =
   match (List.rev tokens) with
-  | (PERIOD, _) :: ls -> List.rev ls |> parse_lemma
+  | (PERIOD, _) :: ls -> List.rev ls |> parse
   | _ -> Parsing_error("Must end command with PERIOD", dummy_tok) |> raise;;
