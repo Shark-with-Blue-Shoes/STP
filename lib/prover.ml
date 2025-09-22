@@ -6,10 +6,14 @@ open Printf
 
 exception Solved_lemma of lemma
 
-let apply_tactic ast (nm, comp) : lemma = 
+let apply_reflexivity (nm, comp) = 
+  match comp with
+  | Eq (expr1, expr2) -> if expr1 = expr2 then Solved_lemma (nm, comp) |> raise else (nm, comp);;
+
+let apply_tactic ast lemma : lemma = 
   match ast with
-  | Reflexivity -> (match comp with
-                    | Eq (expr1, expr2) -> if expr1 = expr2 then Solved_lemma (nm,comp) |> raise else (nm,comp));;
+  | Reflexivity -> apply_reflexivity lemma
+  | Rewrite _ -> print_string "Can't rewrite yet\n"; lemma;;
 
 (*Takes a lemma and a string, parses the string and applies the tactic to the lemma*)
 let interp_tactic (str : string) (lemma : lemma) : lemma = 

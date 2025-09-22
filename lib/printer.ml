@@ -63,6 +63,7 @@ let flemma (nm, comp) =
 let ftactic tac = 
   match tac with
   | Reflexivity -> "Reflexivity"
+  | Rewrite str -> sprintf "Rewrite(%s)" str;;
 
 let print (node : 'a) (format : 'a -> string) = 
   format node |> printf "%s\n";;

@@ -190,12 +190,20 @@ let parse_input (tokens : token list) (parse : (token list -> 'a)) : 'a =
   | _ -> Parsing_error("Must end command with PERIOD", dummy_tok) |> raise;;
 
 type tactic = 
-  | Reflexivity;;
+  | Reflexivity
+  | Rewrite of string;;
 
 let parse_tactic (tokens : token list) : tactic = 
+
+  let get_lname tokens = 
+    match tokens with
+    | [(REWRITE, _); (Var str, _)] -> str
+    | _ -> Parsing_error ("Expected Name", List.hd tokens) |> raise in
+
   let parse_first_token token = 
     match token with
     | (REFLEXIVITY, _) -> Reflexivity
+    | (REWRITE, _) -> Rewrite (get_lname tokens)
     | _ -> Parsing_error ("Expected Tactic", token) |> raise in
   match tokens with
   | hd :: _ -> parse_first_token hd
