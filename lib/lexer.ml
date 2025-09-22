@@ -29,6 +29,17 @@ let string_of_chars chars =
   List.iter (Buffer.add_char buf) chars;
   Buffer.contents buf;;
 
+let string_to_tac str : Tokens.t =
+  match (String.uppercase_ascii str) with
+  | "REWRITE" -> REWRITE
+  | "APPLY" -> APPLY
+  | "INDUCTION" -> INDUCTION
+  | "DESTRUCT" -> DESTRUCT
+  | "SPLIT" -> SPLIT
+  | "LEFT" -> LEFT
+  | "RIGHT" -> RIGHT
+  | "REFLEXIVITY" -> REFLEXIVITY
+  | _ -> Var str;;
 
 let string_to_tok str : Tokens.t = 
   match str with
@@ -41,17 +52,9 @@ let string_to_tok str : Tokens.t =
   | "lemma" -> LEMMA
   | "forall" -> FORALL
   | "nat" -> NAT
-  | "definition" -> DEFINITION
   | "exists" -> EXISTS
-  | "REWRITE" -> REWRITE
-  | "APPLY" -> APPLY
-  | "INDUCTION" -> INDUCTION
-  | "DESTRUCT" -> DESTRUCT
-  | "SPLIT" -> SPLIT
-  | "LEFT" -> LEFT
-  | "RIGHT" -> RIGHT
-  | "REFLEXIVITY" -> REFLEXIVITY
-  | _ -> Var str;;
+  | "definition" -> DEFINITION
+  | _ -> string_to_tac str;;
 
 class cursor_tracker txt =
   object (self)
