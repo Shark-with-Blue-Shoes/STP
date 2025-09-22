@@ -10,10 +10,13 @@ let apply_reflexivity (nm, comp) =
   match comp with
   | Eq (expr1, expr2) -> if expr1 = expr2 then Solved_lemma (nm, comp) |> raise else (nm, comp);;
 
+let apply_rewrite (nm, comp) = 
+  print_string "Can't rewrite yet\n"; (nm, comp);;
+
 let apply_tactic ast lemma : lemma = 
   match ast with
   | Reflexivity -> apply_reflexivity lemma
-  | Rewrite _ -> print_string "Can't rewrite yet\n"; lemma;;
+  | Rewrite _ -> apply_rewrite lemma;;
 
 (*Takes a lemma and a string, parses the string and applies the tactic to the lemma*)
 let interp_tactic (str : string) (lemma : lemma) : lemma = 
@@ -47,7 +50,7 @@ let interp_lemma (str : string) : unit =
     let lex = new lexer str in
       let tokens = lex#tokenize [] in
         let ast = parse_input tokens parse_lemma in
-          print_string "Time to prove it!\n";
+          print_string "\nTime to prove it!\n";
           prove_lemma ast;
   with 
   | Lexing_error (err, toks, pos) -> 
@@ -58,4 +61,15 @@ let interp_lemma (str : string) : unit =
       let (tok, pos) = tok in
       let tokstr = format_tok tok in
       printf "PARSING ERROR: %s at token %s line %d, offset %d\n" err tokstr pos.line_num pos.bol_off;;
+
+let rec get_lemma () =
+  print_string ">>> ";
+  let txt = read_line () in
+  match txt with
+  | "exit" -> print_endline "Goodbye!"
+  | _ -> try 
+         interp_lemma txt; get_lemma ();
+         with
+         | Solved_lemma (nm, _) -> printf "\nSolved lemma %s! Do another!\n" nm; get_lemma ()
+         | e -> Printexc.to_string e |> printf "ANOMALY: %s\n"; get_lemma ();;
 
