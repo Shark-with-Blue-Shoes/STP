@@ -1,45 +1,53 @@
 open Printf
 open Parser
 
+let format_tok (tok : Tokens.t) = 
+  match tok with
+  | Num i -> sprintf "NUM(%i)" i
+  | Var s -> sprintf "VAR(%s)" s
+  | MULT -> "MULT"
+  | DIV -> "DIV"
+  | PLUS -> "PLUS"
+  | SUB -> "SUB"
+  | EQ -> "EQ"
+  | LPAREN -> "LPAREN"
+  | RPAREN -> "RPAREN"
+  | LBRACE -> "LBRACE"
+  | RBRACE -> "RBRACE"
+  | LBRACK -> "LBRACK"
+  | RBRACK -> "RBRACK"
+  | SEMICOLON -> "SEMICOLON"
+  | COLON -> "COLON"
+  | AND -> "AND"
+  | OR -> "OR"
+  | MATCH -> "MATCH"
+  | WITH -> "WITH"
+  | IF -> "IF"
+  | ELSE -> "ELSE"
+  | TRUE -> "TRUE"
+  | FALSE -> "FALSE"
+  | LEMMA -> "LEMMA"
+  | FORALL -> "FORALL"
+  | COMMA -> "COMMA"
+  | PERIOD -> "PERIOD"
+  | DEFINITION -> "DEFINITION"
+  | EXISTS -> "EXISTS"
+  | NAT -> "NAT"
+  | REWRITE -> "REWRITE"
+  | APPLY -> "APPLY"
+  | INDUCTION -> "INDUCTION"
+  | DESTRUCT -> "DESTRUCT"
+  | SPLIT -> "SPLIT"
+  | LEFT -> "LEFT"
+  | RIGHT -> "RIGHT"
+  | REFLEXIVITY -> "REFLEXIVITY"
+  | EOF -> "EOF";;
+
 let rec print_tokens toks : unit =
-  let print_token (tok : Tokens.t) : unit = 
-    let str = 
-    match tok with
-    | Num i -> sprintf "NUM(%i)" i
-    | Var s -> sprintf "VAR(%s)" s
-    | MULT -> "MULT"
-    | DIV -> "DIV"
-    | PLUS -> "PLUS"
-    | SUB -> "SUB"
-    | EQ -> "EQ"
-    | LPAREN -> "LPAREN"
-    | RPAREN -> "RPAREN"
-    | LBRACE -> "LBRACE"
-    | RBRACE -> "RBRACE"
-    | LBRACK -> "LBRACK"
-    | RBRACK -> "RBRACK"
-    | SEMICOLON -> "SEMICOLON"
-    | COLON -> "COLON"
-    | AND -> "AND"
-    | OR -> "OR"
-    | MATCH -> "MATCH"
-    | WITH -> "WITH"
-    | IF -> "IF"
-    | ELSE -> "ELSE"
-    | TRUE -> "TRUE"
-    | FALSE -> "FALSE"
-    | LEMMA -> "LEMMA"
-    | FORALL -> "FORALL"
-    | COMMA -> "COMMA"
-    | PERIOD -> "PERIOD"
-    | DEFINITION -> "DEFINITION"
-    | NAT -> "NAT"
-    | EOF -> "EOF" in printf "%s\n" str;
-in
-match toks with
-| [] -> ()
-| hd :: tl ->
-    print_token hd;
+  match toks with
+  | [] -> ()
+  | hd :: tl ->
+      format_tok hd |> printf "%s\n";
     print_tokens tl;;
 
 let print_expr (expr : expr) =

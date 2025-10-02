@@ -1,12 +1,10 @@
 open STP.Lexer
-open STP.Parser
 open STP.Printer
 
 let interp str =
   let lex = new lexer str in
-    let _ = lex#tokenize in
-      let ast = parse_expr lex#get_tokens in
-        print_expr ast;;
+    let (toks, _) = lex#tokenize [] |> List.split in 
+      print_tokens toks;;
 
 let rec repl () =
   print_string ">>> ";

@@ -27,5 +27,14 @@ type t =
   | LEMMA
   | FORALL
   | DEFINITION
+  | EXISTS
   | NAT
+  | REWRITE
+  | APPLY
+  | INDUCTION
+  | DESTRUCT
+  | SPLIT
+  | LEFT
+  | RIGHT
+  | REFLEXIVITY
   | EOF
