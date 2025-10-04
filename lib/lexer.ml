@@ -10,6 +10,12 @@ type position = {
   offset : int; 
 };;
 
+let dummy : position = {
+  line_num = 0;
+  bol_off = 0;
+  offset = 0;
+};;
+
 let curs_to_pos (curs : cursor) : position = 
   {line_num = curs.line_num; bol_off = curs.bol_off; offset = curs.offset};;
 
@@ -18,7 +24,7 @@ let pos_to_curs (pos : position) : cursor =
 
 type token =  (Tokens.t * position);;
 
-exception Lexing_error of string * token list * cursor;;
+exception Lexing_error of string * Tokens.t list * cursor;;
 
 open Tokens
 open Printf
@@ -105,7 +111,8 @@ method tokenize (tokens : token list) : token list =
       let char = txt.[cursor#current_off] in
       match char with
       | 'a' .. 'z' | 'A' .. 'Z' ->  
-          Lexing_error ("Can't end number with letter, add a space or something", tokens, cursor#get_curs) |> raise;
+          let (toks, _) = List.split tokens in
+          Lexing_error ("Can't end number with letter, add a space or something", toks, cursor#get_curs) |> raise;
       | '0' .. '9' -> chars @ [char] |> tokenize_num 
       | _ -> cursor#shiftl ();
             let final_num = chars |> string_of_chars |> int_of_string in
@@ -135,7 +142,8 @@ method tokenize (tokens : token list) : token list =
       | _ -> skip_comment ()
     end
     else 
-    Lexing_error ("Forgot to close comment", tokens, cursor#get_curs) |> raise in
+    let (toks, _) = List.split tokens in
+      Lexing_error ("Forgot to close comment", toks, cursor#get_curs) |> raise in
 
   if cursor#at_eof () |> not then begin
     let char = txt.[cursor#current_off] in
@@ -164,10 +172,11 @@ method tokenize (tokens : token list) : token list =
                        | '|' -> OR
                        | ',' -> COMMA
                        | '.' -> PERIOD
-                       | t -> Lexing_error (sprintf "%c does not match any known char" t, tokens, cursor#get_curs) |> raise in
+                       | t -> let (toks, _) = List.split tokens in
+                            Lexing_error (sprintf "%c does not match any known char" t, toks, cursor#get_curs) |> raise in
                             let token = (t, pos) in
                             tokenize_next (tokens @ [token]) end
   else
-    tokens
+    tokens @ [(EOF, dummy)]
 end
 

@@ -1,10 +1,21 @@
 open STP.Lexer
 open STP.Printer
+open STP.Parser
+open Printf
 
 let interp str =
-  let lex = new lexer str in
-    let (toks, _) = lex#tokenize [] |> List.split in 
+  try
+    let lex = new lexer str in
+      let tokens = lex#tokenize [] in 
+        let ast = parse_expr tokens in
+          print_expr ast
+  with 
+  | Parsing_error err -> print_string err
+  | Lexing_error (err, toks, pos) -> 
+      printf "LEXING ERROR at line %d, offset %d: %s\n\n\n" pos.line_num pos.bol_off err;
+      print_string "Printing retrieved tokens...\n\n";
       print_tokens toks;;
+
 
 let rec repl () =
   print_string ">>> ";
