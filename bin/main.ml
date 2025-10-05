@@ -7,8 +7,9 @@ let interp str =
   try
     let lex = new lexer str in
       let tokens = lex#tokenize [] in 
-        let ast = parse_expr tokens in
-          print_expr ast
+        let pars = new parsing tokens in
+          let ast = pars#parse_comp in
+          print_comp ast
   with 
   | Parsing_error err -> print_string err
   | Lexing_error (err, toks, pos) -> 

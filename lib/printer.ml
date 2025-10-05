@@ -67,3 +67,11 @@ let print_expr (expr : expr) =
   let str = format_expr expr in
   printf "%s\n" str;;
 
+let fcomp comp = 
+  match comp with
+  | Eq (expr1, expr2) -> sprintf "Eq(%s, %s)" (format_expr expr1) (format_expr expr2);;
+
+let print_comp (comp : comp) =
+  let str = fcomp comp in
+  printf "%s\n" str;;
+

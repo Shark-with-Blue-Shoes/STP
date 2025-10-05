@@ -49,10 +49,10 @@ let format_pos (pos : position) : string =
 
 let format_token (token : token) : string = 
   let (tok, pos) = token in
-    sprintf "%s: %s\n" (format_tok tok) (format_pos pos);;
+    sprintf "%s at %s" (format_tok tok) (format_pos pos);;
 
 let error_of_token (err: string) (token : token) : string =
-  sprintf "%s at %s" err (format_token token);;
+  sprintf "%s, got %s\n" err (format_token token);;
 
 exception Parsing_error of string;;
 
@@ -69,36 +69,52 @@ and op =
 and comp = 
   | Eq of expr * expr;;
 
-let parse_op (token : token) : op =
-  let (tok, _) = token in
-    match tok with
-    | MULT -> Mult
-    | DIV -> Div
-    | PLUS -> Add
-    | SUB -> Sub
-    | _ -> Parsing_error (error_of_token "Expecting a binop, got" token) |> raise;;
+class parsing (tokens : token list) = object (self)
 
+  val mutable toks = tokens
 
-let rec parse_binop (start : expr) (tokens : token list) : expr =
-  match tokens with
-  | op :: (Tokens.Num y, _) :: ls -> parse_binop (Binop ((parse_op op), start, (Num y))) ls
-  | [(EOF, _)] -> start
-  | [] -> Parsing_error "Expecting an EOF, got nothing" |> raise
-  | ls -> Parsing_error (List.hd ls |> error_of_token "Expecting an (op + num) or EOF, got") |> raise;;
+  method shift () =
+   match toks with
+   | [] -> Parsing_error "No more\n" |> raise
+   | _ :: ls -> toks <- ls
 
-let parse_expr (tokens : token list) : expr = 
+  method shift_n num =
+    let rec loop num =
+      if num > 0 then begin
+        self#shift (); loop (num-1) end
+      else () in loop num
+  
+  method parse_expr : expr = 
+    
+    (*This parses an operation*)
+    let parse_op (token : token) : op =
+      let (tok, _) = token in
+        match tok with
+        | MULT -> Mult
+        | DIV -> Div
+        | PLUS -> Add
+        | SUB -> Sub
+        | _ -> Parsing_error (error_of_token "Expecting a binop" token) |> raise in
 
-  let parse_first_token hd tl = 
-    match hd with
-    | (Tokens.Num x, _) -> let n1 = Num x in parse_binop n1 tl
-    | _ -> Parsing_error "Anomalous op" |> raise in
+    (*This parses op :: num until an EOF or EQ is reached, perhaps I'll change it*)
+    let rec parse_binop (start : expr) : expr =
+      match toks with
+      | op :: (Tokens.Num y, _) :: _ -> self#shift_n 2; (Binop ((parse_op op), start, (Num y))) |> parse_binop 
+      | [(EOF, _)]  -> start
+      | [] -> Parsing_error "Expecting an EOF, got nothing" |> raise
+      | _ -> start in
+    
+    match toks with
+    | [] -> Parsing_error "Where the helly are the tokens" |> raise
+    | (Tokens.Num x, _) :: _ -> self#shift (); parse_binop (Num x) 
+    | _ -> Parsing_error "Anomalous op" |> raise
 
-  match tokens with
-  | [] -> Parsing_error "Where the helly are the tokens" |> raise
-  | hd :: tl -> parse_first_token hd tl;;
+  method parse_comp : comp = 
+    let expr1 = self#parse_expr in
+    
+    match toks with
+    | (EQ, _) :: (EQ, _) :: _ -> self#shift_n 2; let expr2 = self#parse_expr in Eq (expr1, expr2)
+    | [] -> Parsing_error "expected an eq sign here, got nothing" |> raise
+    | _ -> Parsing_error (List.hd toks |> error_of_token "expected an eq sign here") |> raise
 
-(*and parse_comp (tokens : token list) : comp =
-  let parse_first_token hd tl = 
-    match hd with
-    | (Tokens.Num x, _) -> let n1 = Num x in parse_binop n1 tl
-    | _ -> Parsing_error "Anomalous comp" |> raise in*)
+end
