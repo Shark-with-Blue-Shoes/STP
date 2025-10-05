@@ -2,3 +2,7 @@
  (name STP)
  (modules tokens lexer parser printer)
  )
+ 
+(env
+  (dev
+    (flags (:standard -w -8))))

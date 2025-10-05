@@ -95,12 +95,19 @@ class parsing (tokens : token list) = object (self)
         | _ -> Parsing_error "Expected number after binop\n" |> raise in
       
       let parse_op () : expr =
-          match toks with
-          | (MULT, _) :: _ -> self#shift (); Binop(Mult, start, parse_num ()) |> parse_binop
-          | (DIV, _) :: _ -> self#shift (); Binop(Div, start, parse_num ()) |> parse_binop
-          | (PLUS, _) :: _ -> self#shift (); Binop(Add, start, parse_num ()) |> parse_binop
-          | (SUB, _) :: _ -> self#shift (); Binop(Sub, start, parse_num ()) |> parse_binop
-          | _ -> start in
+
+        let match_op op = 
+          match op with
+          | MULT -> Mult
+          | DIV -> Div
+          | PLUS -> Add
+          | SUB -> Sub
+           in
+
+        match toks with
+        | (((MULT | DIV | PLUS | SUB) as tok), _) :: _ -> 
+            self#shift (); Binop(match_op tok, start, parse_num ()) |> parse_binop
+        | _ -> start in
       
       parse_op ();
        in
