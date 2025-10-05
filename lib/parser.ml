@@ -86,7 +86,6 @@ class parsing (tokens : token list) = object (self)
   
   method parse_expr : expr = 
     
-    (*This parses op :: num until an EOF or EQ is reached, perhaps I'll change it*)
     let rec parse_binop (start : expr) : expr =
       
       let parse_num () : expr = 
@@ -94,22 +93,18 @@ class parsing (tokens : token list) = object (self)
         | (Tokens.Num y, _) :: _ -> self#shift (); Num y
         | _ -> Parsing_error "Expected number after binop\n" |> raise in
       
-      let parse_op () : expr =
+      let match_op op = 
+        match op with
+        | MULT -> Mult
+        | DIV -> Div
+        | PLUS -> Add
+        | SUB -> Sub
+         in
 
-        let match_op op = 
-          match op with
-          | MULT -> Mult
-          | DIV -> Div
-          | PLUS -> Add
-          | SUB -> Sub
-           in
-
-        match toks with
-        | (((MULT | DIV | PLUS | SUB) as tok), _) :: _ -> 
-            self#shift (); Binop(match_op tok, start, parse_num ()) |> parse_binop
-        | _ -> start in
-      
-      parse_op ();
+      match toks with
+      | (((MULT | DIV | PLUS | SUB) as tok), _) :: _ -> 
+          self#shift (); Binop(match_op tok, start, parse_num ()) |> parse_binop
+      | _ -> start
        in
     
     match toks with
