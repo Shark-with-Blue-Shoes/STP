@@ -86,34 +86,35 @@ class parsing (tokens : token list) = object (self)
   
   method parse_expr : expr = 
     
-    (*This parses an operation*)
-    let parse_op (token : token) : op =
-      let (tok, _) = token in
-        match tok with
-        | MULT -> Mult
-        | DIV -> Div
-        | PLUS -> Add
-        | SUB -> Sub
-        | _ -> Parsing_error (error_of_token "Expecting a binop" token) |> raise in
-
     (*This parses op :: num until an EOF or EQ is reached, perhaps I'll change it*)
     let rec parse_binop (start : expr) : expr =
-      match toks with
-      | op :: (Tokens.Num y, _) :: _ -> self#shift_n 2; (Binop ((parse_op op), start, (Num y))) |> parse_binop 
-      | [(EOF, _)]  -> start
-      | [] -> Parsing_error "Expecting an EOF, got nothing" |> raise
-      | _ -> start in
+      
+      let parse_num () : expr = 
+        match toks with
+        | (Tokens.Num y, _) :: _ -> self#shift (); Num y
+        | _ -> Parsing_error "Expected number after binop\n" |> raise in
+      
+      let parse_op () : expr =
+          match toks with
+          | (MULT, _) :: _ -> self#shift (); Binop(Mult, start, parse_num ()) |> parse_binop
+          | (DIV, _) :: _ -> self#shift (); Binop(Div, start, parse_num ()) |> parse_binop
+          | (PLUS, _) :: _ -> self#shift (); Binop(Add, start, parse_num ()) |> parse_binop
+          | (SUB, _) :: _ -> self#shift (); Binop(Sub, start, parse_num ()) |> parse_binop
+          | _ -> start in
+      
+      parse_op ();
+       in
     
     match toks with
     | [] -> Parsing_error "Where the helly are the tokens" |> raise
     | (Tokens.Num x, _) :: _ -> self#shift (); parse_binop (Num x) 
-    | _ -> Parsing_error "Anomalous op" |> raise
+    | _ -> Parsing_error "Anomalous op\n" |> raise
 
   method parse_comp : comp = 
     let expr1 = self#parse_expr in
     
     match toks with
-    | (EQ, _) :: (EQ, _) :: _ -> self#shift_n 2; let expr2 = self#parse_expr in Eq (expr1, expr2)
+    | (EQ, _) :: _ -> self#shift (); let expr2 = self#parse_expr in Eq (expr1, expr2)
     | [] -> Parsing_error "expected an eq sign here, got nothing" |> raise
     | _ -> Parsing_error (List.hd toks |> error_of_token "expected an eq sign here") |> raise
 
