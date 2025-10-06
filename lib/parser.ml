@@ -52,7 +52,7 @@ let format_token (token : token) : string =
     sprintf "%s at %s" (format_tok tok) (format_pos pos);;
 
 let error_of_token (err: string) (token : token) : string =
-  sprintf "%s, got %s\n" err (format_token token);;
+  sprintf "%s, got %s" err (format_token token);;
 
 exception Parsing_error of string;;
 
@@ -75,7 +75,7 @@ class parsing (tokens : token list) = object (self)
 
   method shift () =
    match toks with
-   | [] -> Parsing_error "No more\n" |> raise
+   | [] -> Parsing_error "No more" |> raise
    | _ :: ls -> toks <- ls
 
   method shift_n num =
@@ -88,11 +88,6 @@ class parsing (tokens : token list) = object (self)
     
     let rec parse_binop (start : expr) : expr =
       
-      let parse_num () : expr = 
-        match toks with
-        | (Tokens.Num y, _) :: _ -> self#shift (); Num y
-        | _ -> Parsing_error "Expected number after binop\n" |> raise in
-      
       let match_op op = 
         match op with
         | MULT -> Mult
@@ -102,15 +97,15 @@ class parsing (tokens : token list) = object (self)
          in
 
       match toks with
-      | (((MULT | DIV | PLUS | SUB) as tok), _) :: _ -> 
-          self#shift (); Binop(match_op tok, start, parse_num ()) |> parse_binop
+      | (((MULT | DIV | PLUS | SUB) as op), _) :: (Tokens.Num y, _) :: _ -> 
+          self#shift_n 2; Binop(match_op op, start, Num y) |> parse_binop
       | _ -> start
        in
     
     match toks with
     | [] -> Parsing_error "Where the helly are the tokens" |> raise
     | (Tokens.Num x, _) :: _ -> self#shift (); parse_binop (Num x) 
-    | _ -> Parsing_error "Anomalous op\n" |> raise
+    | _ -> Parsing_error "Anomalous op" |> raise
 
   method parse_comp : comp = 
     let expr1 = self#parse_expr in

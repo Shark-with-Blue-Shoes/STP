@@ -11,7 +11,7 @@ let interp str =
           let ast = pars#parse_comp in
           print_comp ast
   with 
-  | Parsing_error err -> print_string err
+  | Parsing_error err -> printf "%s\n" err
   | Lexing_error (err, toks, pos) -> 
       printf "LEXING ERROR at line %d, offset %d: %s\n\n\n" pos.line_num pos.bol_off err;
       print_string "Printing retrieved tokens...\n\n";
