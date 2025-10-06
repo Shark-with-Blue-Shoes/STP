@@ -119,9 +119,14 @@ class parsing (tokens : token list) = object (self)
     | [] -> Parsing_error "Expected an eq sign here, got nothing" |> raise
     | hd :: _ -> Parsing_error (error_of_token "Expected an eq sign here" hd) |> raise
   
+  method end_of_lemma : unit = 
+    match toks with
+    | hd :: _ -> Parsing_error (error_of_token "Did not end lemma correctly" hd) |> raise
+    | [] -> ()
+
   method parse_lemma : lemma = 
     match toks with
-    | (LEMMA, _) :: (Var str, _) :: (COLON, _) :: _ -> self#shift_n 3; (str, self#parse_comp)
+    | (LEMMA, _) :: (Var str, _) :: (COLON, _) :: _ -> self#shift_n 3; let lem = (str, self#parse_comp) in self#end_of_lemma; lem
     | (LEMMA, _) ::  _ ->  Parsing_error "Where's the name" |> raise
     | [] -> Parsing_error "Expect lemma, got nothing" |> raise
     | hd :: _ -> Parsing_error (error_of_token "Expected lemma" hd) |> raise
