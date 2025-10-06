@@ -69,10 +69,12 @@ and op =
 and comp = 
   | Eq of expr * expr
 
-and lemma = string * comp;;
+and lemma = string * comp
 
+and tactic = 
+  | Reflexivity;;
 
-class parsing (tokens : token list) = object (self)
+class parse_lemma (tokens : token list) = object (self)
 
   val mutable toks = tokens
 
@@ -131,4 +133,25 @@ class parsing (tokens : token list) = object (self)
     | [] -> Parsing_error "Expect lemma, got nothing" |> raise
     | hd :: _ -> Parsing_error (error_of_token "Expected lemma" hd) |> raise
 
+end
+
+class parse_tactic (tokens : token list) = object (self)
+
+  val mutable toks = tokens
+
+  method shift () =
+   match toks with
+   | [] -> Parsing_error "No more" |> raise
+   | _ :: ls -> toks <- ls
+
+  method shift_n num =
+    let rec loop num =
+      if num > 0 then begin
+        self#shift (); loop (num-1) end
+      else () in loop num
+  
+  method parse_tactic : tactic = 
+    match toks with
+    | [(REFLEXIVITY, _)] -> Reflexivity
+    | _ -> Parsing_error "I hate you!" |> raise
 end
