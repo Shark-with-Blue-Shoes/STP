@@ -88,13 +88,13 @@ class parsing (tokens : token list) = object (self)
     
     let rec parse_binop (start : expr) : expr =
       
-      let match_op op = 
-        match op with
-        | MULT -> Mult
-        | DIV -> Div
-        | PLUS -> Add
-        | SUB -> Sub
-         in
+        let match_op op = 
+          match op with
+          | MULT -> Mult
+          | DIV -> Div
+          | PLUS -> Add
+          | SUB -> Sub
+           in
 
       match toks with
       | (((MULT | DIV | PLUS | SUB) as op), _) :: (Tokens.Num y, _) :: _ -> 
@@ -108,8 +108,7 @@ class parsing (tokens : token list) = object (self)
     | _ -> Parsing_error "Anomalous op" |> raise
 
   method parse_comp : comp = 
-    let expr1 = self#parse_expr in
-    
+    let expr1 = self#parse_expr in 
     match toks with
     | (EQ, _) :: _ -> self#shift (); let expr2 = self#parse_expr in Eq (expr1, expr2)
     | [] -> Parsing_error "expected an eq sign here, got nothing" |> raise

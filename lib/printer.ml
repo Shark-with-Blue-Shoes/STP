@@ -50,28 +50,24 @@ let rec print_tokens toks : unit =
       format_tok hd |> printf "%s\n";
     print_tokens tl;;
 
-let format_op op =
+let fop op =
   match op with
   | Add -> "+"
   | Sub -> "-"
   | Mult -> "*"
   | Div -> "//";;
 
-let rec format_expr expr = 
+let rec fexpr expr = 
   match expr with 
-  | Num n -> sprintf "Num(%d)" n
+  | Num n -> sprintf "%d" n
   | Binop (op, expr1, expr2) -> 
-      sprintf "Binop(%s, %s, %s)" (format_op op) (format_expr expr1) (format_expr expr2);;
-
-let print_expr (expr : expr) =
-  let str = format_expr expr in
-  printf "%s\n" str;;
+      sprintf "(%s %s %s)" (fexpr expr1) (fop op) (fexpr expr2);;
 
 let fcomp comp = 
   match comp with
-  | Eq (expr1, expr2) -> sprintf "Eq(%s, %s)" (format_expr expr1) (format_expr expr2);;
+  | Eq (expr1, expr2) -> sprintf "%s = %s" (fexpr expr1) (fexpr expr2);;
 
-let print_comp (comp : comp) =
-  let str = fcomp comp in
+let print (func : 'a -> string) (obj : 'a) =
+  let str = func obj in
   printf "%s\n" str;;
 

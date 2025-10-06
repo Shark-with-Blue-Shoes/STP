@@ -9,7 +9,7 @@ let interp str =
       let tokens = lex#tokenize [] in 
         let pars = new parsing tokens in
           let ast = pars#parse_comp in
-          print_comp ast
+          print fcomp ast
   with 
   | Parsing_error err -> printf "%s\n" err
   | Lexing_error (err, toks, pos) -> 
