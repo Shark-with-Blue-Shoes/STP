@@ -8,8 +8,8 @@ let interp str =
     let lex = new lexer str in
       let tokens = lex#tokenize [] in 
         let pars = new parsing tokens in
-          let ast = pars#parse_comp in
-          print fcomp ast
+          let ast = pars#parse_lemma in
+          print flemma ast
   with 
   | Parsing_error err -> printf "%s\n" err
   | Lexing_error (err, toks, pos) -> 

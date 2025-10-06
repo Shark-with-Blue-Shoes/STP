@@ -67,6 +67,9 @@ let fcomp comp =
   match comp with
   | Eq (expr1, expr2) -> sprintf "%s = %s" (fexpr expr1) (fexpr expr2);;
 
+let flemma (name, comp) = 
+  sprintf "Lemma %s : %s" name (fcomp comp);;
+
 let print (func : 'a -> string) (obj : 'a) =
   let str = func obj in
   printf "%s\n" str;;

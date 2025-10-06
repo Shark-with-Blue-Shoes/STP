@@ -67,7 +67,10 @@ and op =
   | Div
 
 and comp = 
-  | Eq of expr * expr;;
+  | Eq of expr * expr
+
+and lemma = string * comp;;
+
 
 class parsing (tokens : token list) = object (self)
 
@@ -99,6 +102,8 @@ class parsing (tokens : token list) = object (self)
       match toks with
       | (((MULT | DIV | PLUS | SUB) as op), _) :: (Tokens.Num y, _) :: _ -> 
           self#shift_n 2; Binop(match_op op, start, Num y) |> parse_binop
+      | ((MULT | DIV | PLUS | SUB), _) :: _ -> 
+          Parsing_error "I expect a number after an operator" |> raise
       | _ -> start
        in
     
@@ -111,7 +116,14 @@ class parsing (tokens : token list) = object (self)
     let expr1 = self#parse_expr in 
     match toks with
     | (EQ, _) :: _ -> self#shift (); let expr2 = self#parse_expr in Eq (expr1, expr2)
-    | [] -> Parsing_error "expected an eq sign here, got nothing" |> raise
-    | _ -> Parsing_error (List.hd toks |> error_of_token "expected an eq sign here") |> raise
+    | [] -> Parsing_error "Expected an eq sign here, got nothing" |> raise
+    | hd :: _ -> Parsing_error (error_of_token "Expected an eq sign here" hd) |> raise
+  
+  method parse_lemma : lemma = 
+    match toks with
+    | (LEMMA, _) :: (Var str, _) :: (COLON, _) :: _ -> self#shift_n 3; (str, self#parse_comp)
+    | (LEMMA, _) ::  _ ->  Parsing_error "Where's the name" |> raise
+    | [] -> Parsing_error "Expect lemma, got nothing" |> raise
+    | hd :: _ -> Parsing_error (error_of_token "Expected lemma" hd) |> raise
 
 end
