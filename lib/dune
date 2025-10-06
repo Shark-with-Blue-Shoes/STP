@@ -1,6 +1,6 @@
 (library
  (name STP)
- (modules tokens lexer parser printer)
+ (modules tokens lexer parser printer prover)
  )
  
 (env
