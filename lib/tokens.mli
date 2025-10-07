@@ -37,4 +37,5 @@ type t =
   | LEFT
   | RIGHT
   | REFLEXIVITY
+  | SIMPL
   | EOF

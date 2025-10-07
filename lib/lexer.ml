@@ -44,6 +44,7 @@ let string_to_tac str : Tokens.t =
   | "LEFT" -> LEFT
   | "RIGHT" -> RIGHT
   | "REFLEXIVITY" -> REFLEXIVITY
+  | "SIMPL" -> SIMPL
   | _ -> Var str;;
 
 let string_to_tok str : Tokens.t = 

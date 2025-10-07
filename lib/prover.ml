@@ -9,9 +9,19 @@ let apply_reflexivity (nm, comp) =
   match comp with
   | Eq (expr1, expr2) -> if expr1 = expr2 then Solved_lemma (nm, comp) |> raise else (nm, comp);;
 
-let apply_tactic ast lemma : lemma = 
-  match ast with
+let rec simplify_expr expr = 
+  match expr with
+  | Binop (Add, expr2, expr1) -> (simplify_expr expr2 + simplify_expr expr1)
+  | Num y -> y;;
+
+let apply_simpl (nm, comp) = 
+  match comp with
+  | Eq (expr1, expr2) -> (nm, Eq (Num (simplify_expr expr1), Num (simplify_expr expr2)));;
+
+let apply_tactic tac lemma : lemma = 
+  match tac with
   | Reflexivity -> apply_reflexivity lemma
+  | Simpl -> apply_simpl lemma
 
 (*A repl inside the get_lemma repl*)
 let rec prove_lemma (lemma : lemma) : unit = 
@@ -23,7 +33,8 @@ let rec prove_lemma (lemma : lemma) : unit =
            let tokens = lex#tokenize [] in 
              let pars = new parse_tactic tokens in
                let tac = pars#parse_tactic in
-                 let _ = apply_tactic tac lemma in prove_lemma lemma;;
+                 let nlemma = apply_tactic tac lemma in
+                 printf "%s\n" (flemma nlemma); prove_lemma nlemma;;
 
 let interp str =
   try

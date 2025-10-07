@@ -16,7 +16,7 @@ and comp = Eq of expr * expr
 
 and lemma = string * comp
 
-and tactic = Reflexivity
+and tactic = Reflexivity | Simpl
 
 class parse_lemma :
   Lexer.token list ->

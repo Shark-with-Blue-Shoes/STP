@@ -72,7 +72,8 @@ and comp =
 and lemma = string * comp
 
 and tactic = 
-  | Reflexivity;;
+  | Reflexivity
+  | Simpl;;
 
 class parse_lemma (tokens : token list) = object (self)
 
@@ -153,5 +154,6 @@ class parse_tactic (tokens : token list) = object (self)
   method parse_tactic : tactic = 
     match toks with
     | [(REFLEXIVITY, _)] -> Reflexivity
+    | [(SIMPL, _)] -> Simpl
     | _ -> Parsing_error "I hate you!" |> raise
 end
