@@ -157,7 +157,6 @@ method tokenize (tokens : token list) : token list =
                        | 'a' .. 'z' | 'A' .. 'Z' ->  tokenize_word [char]
                        | '0' .. '9' -> tokenize_num [char]
                        | '+' -> PLUS
-                       | '/' -> DIV
                        | '*' -> MULT
                        | '-' -> SUB 
                        | '=' -> EQ

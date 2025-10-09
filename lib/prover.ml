@@ -10,8 +10,14 @@ let apply_reflexivity (nm, comp) =
   | Eq (expr1, expr2) -> if expr1 = expr2 then Solved_lemma (nm, comp) |> raise else (nm, comp);;
 
 let rec simplify_expr expr = 
+
+  let match_op op expr1 expr2 = 
+    match op with
+    | Add -> (simplify_expr expr2 + simplify_expr expr1)
+    | Sub -> (simplify_expr expr2 - simplify_expr expr1)
+    | Mult -> (simplify_expr expr2 * simplify_expr expr1) in
   match expr with
-  | Binop (Add, expr2, expr1) -> (simplify_expr expr2 + simplify_expr expr1)
+  | Binop (op, expr1, expr2) -> match_op op expr1 expr2
   | Num y -> y;;
 
 let apply_simpl (nm, comp) = 

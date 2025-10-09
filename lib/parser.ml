@@ -7,7 +7,6 @@ let format_tok (tok : Tokens.t) =
   | Num i -> sprintf "NUM(%i)" i
   | Var s -> sprintf "VAR(%s)" s
   | MULT -> "MULT"
-  | DIV -> "DIV"
   | PLUS -> "PLUS"
   | SUB -> "SUB"
   | EQ -> "EQ"
@@ -64,7 +63,6 @@ and op =
   | Add
   | Sub
   | Mult
-  | Div
 
 and comp = 
   | Eq of expr * expr
@@ -97,15 +95,14 @@ class parse_lemma (tokens : token list) = object (self)
         let match_op op = 
           match op with
           | MULT -> Mult
-          | DIV -> Div
           | PLUS -> Add
           | SUB -> Sub
            in
 
       match toks with
-      | (((MULT | DIV | PLUS | SUB) as op), _) :: (Tokens.Num y, _) :: _ -> 
+      | (((MULT | PLUS | SUB) as op), _) :: (Tokens.Num y, _) :: _ -> 
           self#shift_n 2; Binop(match_op op, start, Num y) |> parse_binop
-      | ((MULT | DIV | PLUS | SUB), _) :: _ -> 
+      | ((MULT | PLUS | SUB), _) :: _ -> 
           Parsing_error "I expect a number after an operator" |> raise
       | _ -> start
        in

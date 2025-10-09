@@ -10,7 +10,7 @@ exception Parsing_error of string
 
 type expr = Num of int | Binop of op * expr * expr
 
-and op = Add | Sub | Mult | Div
+and op = Add | Sub | Mult
 
 and comp = Eq of expr * expr
 

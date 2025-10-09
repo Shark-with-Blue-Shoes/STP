@@ -6,7 +6,6 @@ let format_tok (tok : Tokens.t) =
   | Num i -> sprintf "NUM(%i)" i
   | Var s -> sprintf "VAR(%s)" s
   | MULT -> "MULT"
-  | DIV -> "DIV"
   | PLUS -> "PLUS"
   | SUB -> "SUB"
   | EQ -> "EQ"
@@ -54,8 +53,7 @@ let fop op =
   match op with
   | Add -> "+"
   | Sub -> "-"
-  | Mult -> "*"
-  | Div -> "//";;
+  | Mult -> "*";;
 
 let rec fexpr expr = 
   match expr with 
