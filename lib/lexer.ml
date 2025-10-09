@@ -55,7 +55,7 @@ let string_to_tok str : Tokens.t =
   | "else" -> ELSE
   | "true" -> TRUE
   | "false" -> FALSE
-  | "lemma" -> LEMMA
+  | "lemma" | "theorem" -> LEMMA
   | "forall" -> FORALL
   | "nat" -> NAT
   | "exists" -> EXISTS

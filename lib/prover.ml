@@ -48,7 +48,8 @@ let interp str =
       let tokens = lex#tokenize [] in 
         let pars = new parse_lemma tokens in
           let (nme, comp) = pars#parse_lemma in
-            printf "\nSolving %s Lemma\n" nme;
+            printf "\nSolving Theorem %s...\n\n" nme;
+            printf "Try to prove it using tactics like simpl and reflexivity!\n";
             prove_lemma (nme, comp) 
   with 
   | Parsing_error err -> printf "%s\n" err
@@ -66,7 +67,7 @@ let rec get_lemma () =
   | _ -> try 
          interp txt; get_lemma ();
          with
-         | Solved_lemma (nm, _) -> printf "\nSolved lemma %s! Do another!\n" nm; get_lemma ()
+         | Solved_lemma (nm, _) -> printf "\nSolved Theorem %s! Enter another lemma!\n" nm; get_lemma ()
          | e -> Printexc.to_string e |> printf "ANOMALY: %s\n"; get_lemma ();;
 
 
